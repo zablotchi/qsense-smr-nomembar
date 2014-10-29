@@ -238,6 +238,7 @@ test(void* thread)
   free(alloc);
 #endif
 
+  mr_thread_exit();
   pthread_exit(NULL);
 }
 
