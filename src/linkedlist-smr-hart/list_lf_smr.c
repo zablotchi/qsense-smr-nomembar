@@ -175,7 +175,7 @@ int insert(struct list *l, long key)
 
         MEM_BARRIER;
         n->key = key;
-        MEM_BARRIER;
+        MEM_BARRIER
         n->next = list_data.cur;
         // write_barrier();
         MEM_BARRIER;
