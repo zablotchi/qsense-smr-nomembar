@@ -162,7 +162,7 @@ void scan()
             sd.rlist = cur;
             sd.rcount++;
         } else {
-            ((node_t *)(cur->actual_node))->key = 10000 + cur->type;
+            ((node_t *)(cur->actual_node))->key = 10000 + cur_node->type;
             // ssfree_alloc(0, cur->actual_node);
             // ssfree_alloc(1, cur);
         }
