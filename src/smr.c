@@ -41,8 +41,11 @@ void mr_init_global(uint64_t nthreads){
 
   /* Initialize the hazard pointers. */
   int i;
-  for (i = 0; i < K*(nthreads); i++)
+  for (i = 0; i < K*(nthreads); i++) {
     HP[i].p = NULL;
+  }
+
+  MEM_BARRIER;
 }
 
 void mr_init_local(uint64_t thread_index, uint64_t nthreads){
@@ -51,6 +54,7 @@ void mr_init_local(uint64_t thread_index, uint64_t nthreads){
   sd.thread_index = thread_index;
   sd.nthreads = nthreads;
   sd.plist = (mr_node_t **) malloc(sizeof(mr_node_t *) * K * sd.nthreads);
+  MEM_BARRIER;
 }
 
 // void mr_init()
@@ -74,11 +78,15 @@ void mr_thread_exit()
     
     for (i = 0; i < K; i++)
         HP[K * sd.thread_index + i].p = NULL;
-    
+    MEM_BARRIER;
+
     while (sd.rcount > 0) {
-        scan();
-        sched_yield();
+      MEM_BARRIER;
+      scan();
+      MEM_BARRIER;
+      sched_yield();
     }
+    MEM_BARRIER;
 }
 
 void mr_reinitialize()
@@ -121,6 +129,7 @@ void scan()
 
     /* List of hazard pointers, and its size. */
     mr_node_t **plist = sd.plist;
+    MEM_BARRIER;
     uint64_t psize;
 
     /*
@@ -136,33 +145,51 @@ void scan()
      *                    B -> POISON      B -> POISON
      */
     //write_barrier();
-     MEM_BARRIER;
+    
+    MEM_BARRIER;
 
     /* Stage 1: Scan HP list and insert non-null values in plist. */
     psize = 0;
     for (i = 0; i < H; i++) {
-        if (HP[i].p != NULL)
-            plist[psize++] = HP[i].p;
+      if (HP[i].p != NULL) {
+        plist[psize++] = HP[i].p;
+        MEM_BARRIER;
+      }
     }
     
+    MEM_BARRIER; 
+
     /* Stage 2: Sort the plist. */
     qsort(plist, psize, sizeof(mr_node_t *), compare);
 
+    MEM_BARRIER;
+
     /* Stage 3: Free non-harzardous nodes. */
     tmplist = sd.rlist;
+    MEM_BARRIER;
     sd.rlist = NULL;
+    MEM_BARRIER;
     sd.rcount = 0;
+    MEM_BARRIER;
     while (tmplist != NULL) {
         /* Pop cur off top of tmplist. */
         cur = tmplist;
+        MEM_BARRIER;
         tmplist = tmplist->mr_next;
+        MEM_BARRIER;
 
         if (bsearch(&cur, plist, psize, sizeof(mr_node_t *), compare)) {
+            MEM_BARRIER;
             cur->mr_next = sd.rlist;
+            MEM_BARRIER;
             sd.rlist = cur;
+            MEM_BARRIER;
             sd.rcount++;
+            MEM_BARRIER;
         } else {
+            MEM_BARRIER;
             ((node_t *)(cur->actual_node))->key = 10000 + sd.thread_index;
+            MEM_BARRIER;
             // ssfree_alloc(0, cur->actual_node);
             // ssfree_alloc(1, cur);
         }
@@ -173,13 +200,18 @@ void free_node_later(void *n)
 {
     // OANA IGOR add timestamp around here
     mr_node_t* wrapper_node = ssalloc_alloc(1, sizeof(mr_node_t));
+    MEM_BARRIER;
     wrapper_node->actual_node = n;
-
+    MEM_BARRIER;
     wrapper_node->mr_next = sd.rlist;
+    MEM_BARRIER;
     sd.rlist = wrapper_node;
+    MEM_BARRIER;
     sd.rcount++;
+    MEM_BARRIER;
 
     if (sd.rcount >= R) {
         scan();
+        MEM_BARRIER;
     }
 }
