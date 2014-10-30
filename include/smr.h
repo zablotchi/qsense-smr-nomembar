@@ -69,6 +69,6 @@ typedef ALIGNED(CACHE_LINE_SIZE) struct smr_data smr_data_t;
 
 void scan();
 
-void free_node_later(void *);
+void free_node_later(void *, int);
  
 #endif

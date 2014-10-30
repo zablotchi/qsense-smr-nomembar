@@ -114,7 +114,7 @@ int find (node_t **head, long key)
                 // backoff_delay();
                 goto try_again;
             }
-            free_node_later(cur);
+            free_node_later(cur, 1);
             next = (node_t *)((uint64_t)next-1);
 
         } else {
@@ -122,7 +122,7 @@ int find (node_t **head, long key)
             if (*prev != cur) goto try_again;
             
             if (cur->key >= 10000) {
-                fprintf(stderr, "touched illegal node in find. Deleter: [%d]; Me: [%d]\n", cur->key - 10000, sd.thread_index);
+                fprintf(stderr, "touched illegal node in find. Type: [%d]\n", cur->key - 10000);
             }
             
             if (cur->key >= key) {
@@ -196,7 +196,7 @@ int delete(struct list *l, long key)
         MEM_BARRIER;
         if (CAS_PTR_bool(list_data.prev, 
                list_data.cur, list_data.next)) /* Unlink */
-            free_node_later(list_data.cur); /* Reclaim */
+            free_node_later(list_data.cur, 2); /* Reclaim */
         /* 
          * If we want to revent the possibility of there being an 
          * unbounded number of unmarked nodes, add "else _find(head,key)."
@@ -235,7 +235,7 @@ int search (struct list *l, long key)
                 // backoff_delay();
                 goto try_again;
             }
-            free_node_later(cur);
+            free_node_later(cur, 3);
             next = (node_t *)((uint64_t)next-1);
 
         } else {
@@ -243,7 +243,7 @@ int search (struct list *l, long key)
             if (*prev != cur) goto try_again;
 
             if (cur->key >= 10000) {
-                fprintf(stderr, "touched illegal node in search. Deleter: [%d]; Me: [%d]\n", cur->key - 10000, sd.thread_index);
+                fprintf(stderr, "touched illegal node in search. Type: [%d]\n", cur->key - 10000);
             }
 
             if (ckey >= key) {
