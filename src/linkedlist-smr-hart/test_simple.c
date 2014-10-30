@@ -151,12 +151,8 @@ test(void* thread)
   for (h = 0; h < K * num_threads; ++h)
   {
     fprintf(stderr, "[%d] HP[%d]=%d\n", ID, h, (int)HP[h].p);
+    HP[h].p = (void *)((int)HP[h].p + 1);
   }
-
-  HP[ID].p = (void *)((int)HP[ID].p + 1);
-  HP[ID+1].p = (void *)((int)HP[ID+1].p + 1);
-
-
 
   RR_INIT(phys_id);
   barrier_cross(&barrier);
