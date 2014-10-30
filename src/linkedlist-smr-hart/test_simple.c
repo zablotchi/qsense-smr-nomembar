@@ -147,6 +147,12 @@ test(void* thread)
 #endif
     
 
+  int h;
+  for (h = 0; h < K * num_threads; ++h)
+  {
+    fprintf(stderr, "[%d] HP[%d]=%d\n", ID, h, (int)HP[h].p);
+  }
+
   RR_INIT(phys_id);
   barrier_cross(&barrier);
 
@@ -407,9 +413,17 @@ main(int argc, char **argv)
     
   // DS_TYPE* set = DS_NEW();
   mr_init_global(num_threads);
+
+  int h;
+  for (h = 0; h < K * num_threads; h++) {
+    if (HP[h].p != NULL) {
+      fprintf(stderr, "problem after init\n");
+    }
+    HP[h].p = (void *)h;
+  }
+  
   DS_TYPE* set;
   list_init(&set);
-
   assert(set != NULL);
 
   /* Initializes the local data */
