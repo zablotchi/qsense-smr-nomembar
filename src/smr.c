@@ -162,19 +162,18 @@ void scan()
             sd.rlist = cur;
             sd.rcount++;
         } else {
-            ((node_t *)(cur->actual_node))->key = 10000 + cur_node->type;
+            ((node_t *)(cur->actual_node))->key = 10000 + sd.thread_index;
             // ssfree_alloc(0, cur->actual_node);
             // ssfree_alloc(1, cur);
         }
     }
 }
 
-void free_node_later(void *n, int type)
+void free_node_later(void *n)
 {
     // OANA IGOR add timestamp around here
     mr_node_t* wrapper_node = ssalloc_alloc(1, sizeof(mr_node_t));
     wrapper_node->actual_node = n;
-    wrapper_node->type = type;
 
     wrapper_node->mr_next = sd.rlist;
     sd.rlist = wrapper_node;
