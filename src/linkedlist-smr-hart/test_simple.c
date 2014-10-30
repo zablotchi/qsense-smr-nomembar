@@ -151,6 +151,7 @@ test(void* thread)
   for (h = 0; h < K * num_threads; ++h)
   {
     fprintf(stderr, "[%d] HP[%d]=%d\n", ID, h, (int)HP[h].p);
+    HP[h].p = (void *)((int)HP[h].p + 1);
   }
 
   RR_INIT(phys_id);
