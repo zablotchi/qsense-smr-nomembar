@@ -195,7 +195,6 @@ test(void* thread)
   while (stop == 0) 
     {
       TEST_LOOP(NULL);
-      MEM_BARRIER;
     }
 
   barrier_cross(&barrier);

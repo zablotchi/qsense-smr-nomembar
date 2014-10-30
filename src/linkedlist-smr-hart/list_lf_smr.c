@@ -64,7 +64,6 @@ void list_init(struct list **l) {
     // IGOR OANA potential problem here: allocating different size with 0 allocator
     *l = (struct list *)ssalloc_aligned_alloc(0, CACHE_LINE_SIZE, sizeof(struct list));
     (*l)->list_head = NULL;
-    MEM_BARRIER;
 }
 
 void list_destroy(struct list **l) {
@@ -100,12 +99,12 @@ int find (node_t **head, long key)
         
         /* Protect cur with a hazard pointer. */
         HP[base+off].p = cur;
+        // memory_barrier();
         MEM_BARRIER;
-
         if (*prev != cur) goto try_again;
         
         next = cur->next;
-        MEM_BARRIER;
+    
         /* If the bit is marked... */
         if ((uint64_t)next & 1) {
             
@@ -115,55 +114,42 @@ int find (node_t **head, long key)
                 // backoff_delay();
                 goto try_again;
             }
-            MEM_BARRIER;
             free_node_later(cur);
-            MEM_BARRIER;
             next = (node_t *)((uint64_t)next-1);
-            MEM_BARRIER;
+
         } else {
             
             if (*prev != cur) goto try_again;
             
-            MEM_BARRIER;
             if (cur->key >= 10000) {
                 fprintf(stderr, "touched illegal node in find. Deleter: [%d]; Me: [%d]\n", cur->key - 10000, sd.thread_index);
             }
-            MEM_BARRIER;
             
             if (cur->key >= key) {
                 list_data.cur = cur;
                 list_data.prev = prev;
                 list_data.next = next;
-                MEM_BARRIER;
                 return (cur->key == key);
             }
             
-            MEM_BARRIER;
             prev = &cur->next;
-            MEM_BARRIER;
             off = !off;
-            MEM_BARRIER;
         }
     }
 
-    MEM_BARRIER;
     list_data.cur = cur;
-    MEM_BARRIER;
     list_data.prev = prev;
-    MEM_BARRIER;
     list_data.next = next;
-    MEM_BARRIER;
     return (0);
 }
 
 int insert(struct list *l, long key)
 {
-    MEM_BARRIER;
     node_t **head = &l->list_head;
     //node_t *n = new_node();
-    MEM_BARRIER;
+
     node_t *n = ssalloc_alloc(0, sizeof(node_t));
-    MEM_BARRIER;
+
 
     // backoff_reset();
 
@@ -172,10 +158,7 @@ int insert(struct list *l, long key)
             ssfree_alloc(0, n);
             return (0);
         }
-
-        MEM_BARRIER;
         n->key = key;
-        MEM_BARRIER
         n->next = list_data.cur;
         // write_barrier();
         MEM_BARRIER;
@@ -194,14 +177,13 @@ int delete(struct list *l, long key)
     // uint64_t myTID = getTID();
     
     // backoff_reset();
-    MEM_BARRIER;
+
     while (1) {
         /* Try to find the key in the list. */
         if (!find(head, key)) {
             return (0);
         }
         
-        MEM_BARRIER;
         /* Mark if needed. */
         if (!CAS_PTR_bool(&(list_data.cur->next), 
                         list_data.next, 
@@ -213,11 +195,8 @@ int delete(struct list *l, long key)
         // write_barrier();
         MEM_BARRIER;
         if (CAS_PTR_bool(list_data.prev, 
-               list_data.cur, list_data.next)) {/* Unlink */
-            MEM_BARRIER;
+               list_data.cur, list_data.next)) /* Unlink */
             free_node_later(list_data.cur); /* Reclaim */
-        }
-        MEM_BARRIER;
         /* 
          * If we want to revent the possibility of there being an 
          * unbounded number of unmarked nodes, add "else _find(head,key)."
@@ -232,13 +211,12 @@ int search (struct list *l, long key)
     node_t **prev, *cur, *next;
     int base = sd.thread_index*K;
     int off = 0;
-    MEM_BARRIER;
 
     // backoff_reset();
     
  try_again:
     prev = &l->list_head;
-    MEM_BARRIER;
+    
     for (cur = *prev; cur != NULL; cur = next) {
         
         /* Protect cur with a hazard pointer. */
@@ -248,7 +226,7 @@ int search (struct list *l, long key)
         if (*prev != cur) goto try_again;
         
         next = cur->next;
-        MEM_BARRIER;
+    
         /* If the bit is marked... */
         if ((uint64_t)next & 1) {
             
@@ -257,30 +235,23 @@ int search (struct list *l, long key)
                 // backoff_delay();
                 goto try_again;
             }
-            MEM_BARRIER;
             free_node_later(cur);
-            MEM_BARRIER;
             next = (node_t *)((uint64_t)next-1);
-            MEM_BARRIER;
+
         } else {
             long ckey = cur->key;
-            MEM_BARRIER;
             if (*prev != cur) goto try_again;
-            MEM_BARRIER;
+
             if (cur->key >= 10000) {
                 fprintf(stderr, "touched illegal node in search. Deleter: [%d]; Me: [%d]\n", cur->key - 10000, sd.thread_index);
             }
-
-            MEM_BARRIER;
 
             if (ckey >= key) {
                 return (ckey == key);
             }
             
             prev = &cur->next;
-            MEM_BARRIER;
             off = !off;
-            MEM_BARRIER;
         }
     }
 
