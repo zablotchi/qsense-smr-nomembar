@@ -126,7 +126,7 @@ lfll_michael:
 	$(MAKE) "STM=LOCKFREE" src/linkedlist-michael
 
 lfll_hart_smr:
-	$(MAKE) "STM=LOCKFREE" "GC=0" "VERSION=O0" src/linkedlist-smr-hart	
+	$(MAKE) "STM=LOCKFREE" "GC=0" src/linkedlist-smr-hart	
 
 lfll_hart_qsbr:
 	$(MAKE) "GC=0" "LOCK=TICKET" src/linkedlist-qsbr-hart
