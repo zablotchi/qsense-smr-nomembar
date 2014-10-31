@@ -158,6 +158,7 @@ void scan()
         tmplist = tmplist->mr_next;
 
         if (bsearch(&(cur->actual_node), plist, psize, sizeof(void *), compare)) {
+            fprintf(stderr, "Not deleting because HP\n");
             cur->mr_next = sd.rlist;
             sd.rlist = cur;
             sd.rcount++;
