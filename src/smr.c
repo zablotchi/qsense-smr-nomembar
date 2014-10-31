@@ -98,7 +98,7 @@ void mr_reinitialize()
  */
 int compare (const void *a, const void *b)
 {
-  return ( a - b );
+  return ( *(void **)a - *(void **)b );
 }
 
 /* Debugging function. Leave it around. */
