@@ -145,20 +145,20 @@ void scan()
             plist[psize++] = HP[i].p;
     }
 
-    char* plist_str = NULL;
-    for (i = 0; i < psize; i++){
-      asprintf(&plist_str, "%s:%p", plist_str, plist[i]);
-    }
-    printf("[%d]Unsorted plist:%s\n", sd.thread_index, plist_str);
+    // char* plist_str = NULL;
+    // for (i = 0; i < psize; i++){
+    //   asprintf(&plist_str, "%s:%p", plist_str, plist[i]);
+    // }
+    // printf("[%d]Unsorted plist:%s\n", sd.thread_index, plist_str);
     
     /* Stage 2: Sort the plist. */
     qsort(plist, psize, sizeof(void *), compare);
 
-    plist_str = NULL;
-    for (i = 0; i < psize; i++){
-      asprintf(&plist_str, "%s:%p", plist_str, plist[i]);
-    }
-    printf("[%d]Sorted plist:%s\n", sd.thread_index, plist_str);
+    // plist_str = NULL;
+    // for (i = 0; i < psize; i++){
+    //   asprintf(&plist_str, "%s:%p", plist_str, plist[i]);
+    // }
+    // printf("[%d]Sorted plist:%s\n", sd.thread_index, plist_str);
 
 
     /* Stage 3: Free non-harzardous nodes. */
@@ -169,9 +169,9 @@ void scan()
         /* Pop cur off top of tmplist. */
         cur = tmplist;
         tmplist = tmplist->mr_next;
-        printf("[%d] Searching for node %p\n", sd.thread_index, cur->actual_node);
+        // printf("[%d] Searching for node %p\n", sd.thread_index, cur->actual_node);
         if (bsearch(&(cur->actual_node), plist, psize, sizeof(void *), compare)) {
-            fprintf(stderr, "[%d]Not deleting %p because HP\n", sd.thread_index, cur->actual_node);
+            // fprintf(stderr, "[%d]Not deleting %p because HP\n", sd.thread_index, cur->actual_node);
             cur->mr_next = sd.rlist;
             sd.rlist = cur;
             sd.rcount++;
