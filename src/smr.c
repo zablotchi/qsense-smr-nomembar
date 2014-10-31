@@ -144,11 +144,17 @@ void scan()
         if (HP[i].p != NULL)
             plist[psize++] = HP[i].p;
     }
+
+    char* plist_str = NULL;
+    for (i = 0; i < psize; i++){
+      asprintf(&plist_str, "%s:%p", plist_str, plist[i]);
+    }
+    printf("[%d]Unsorted plist:%s\n", sd.thread_index, plist_str);
     
     /* Stage 2: Sort the plist. */
     qsort(plist, psize, sizeof(void *), compare);
 
-    char* plist_str = NULL;
+    plist_str = NULL;
     for (i = 0; i < psize; i++){
       asprintf(&plist_str, "%s:%p", plist_str, plist[i]);
     }
