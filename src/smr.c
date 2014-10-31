@@ -96,13 +96,6 @@ void mr_reinitialize()
  *    0 : a == b
  *  > 0 : a > b
  */
-int compare_equality(const void *a, const void *b)
-{
-  const char **p1 = (const char **) a;
-  const char **p2 = (const char **) b;
-
-  return (strcmp(*p1, *p2));
-}
 
 int compare (const void *a, const void *b)
 {
@@ -110,12 +103,14 @@ int compare (const void *a, const void *b)
 }
 
 /* Debugging function. Leave it around. */
-inline mr_node_t *ssearch(mr_node_t **list, int size, mr_node_t *key) {
+inline int ssearch(void **list, size_t size, void *key) {
     int i;
-    for (i = 0; i < size; i++)
-        if (list[i] == key)
-            return list[i];
-    return NULL;
+    for (i = 0; i < size; i++) {
+      if (list[i] == key) {
+        return 1;
+      }
+    }
+    return 0;
 }
 
 void scan()
@@ -129,7 +124,7 @@ void scan()
 
     /* List of hazard pointers, and its size. */
     void **plist = sd.plist;
-    uint64_t psize;
+    size_t psize;
 
     /*
      * Make sure that the most recent node to be deleted has been unlinked
@@ -149,21 +144,22 @@ void scan()
     /* Stage 1: Scan HP list and insert non-null values in plist. */
     psize = 0;
     for (i = 0; i < H; i++) {
-        if (HP[i].p != NULL)
-            plist[psize++] = HP[i].p;
+      if (HP[i].p != NULL){
+        plist[psize] = HP[i].p;
+        psize++;
+      }
     }
-
 
     
     /* Stage 2: Sort the plist. */
     /* OANA For now, just do linear search*/
     //qsort(plist, psize, sizeof(void *), compare);
 
-    // char* plist_str = NULL;
-    // for (i = 0; i < psize; i++){
-    //   asprintf(&plist_str, "%s:%p", plist_str, plist[i]);
-    // }
-    // printf("[%d]Sorted plist:%s\n", sd.thread_index, plist_str);
+    char* plist_str = NULL;
+    for (i = 0; i < psize; i++){
+      asprintf(&plist_str, "%s:%p", plist_str, plist[i]);
+    }
+    printf("[%d]Plist:%s\n", sd.thread_index, plist_str);
 
 
     /* Stage 3: Free non-harzardous nodes. */
@@ -174,10 +170,10 @@ void scan()
         /* Pop cur off top of tmplist. */
         cur = tmplist;
         tmplist = tmplist->mr_next;
-        // printf("[%d] Searching for node %p\n", sd.thread_index, cur->actual_node);
+        printf("[%d] Searching for node %p\n", sd.thread_index, cur->actual_node);
         /*OANA here, bsearch was used, with the compar function*/
-        if (lfind(&(cur->actual_node), plist, psize, sizeof(void *), compare_equality)) {
-            // fprintf(stderr, "[%d]Not deleting %p because HP\n", sd.thread_index, cur->actual_node);
+        if (ssearch(plist, psize, cur->actual_node)) {
+            fprintf(stderr, "[%d]Not deleting %p because HP\n", sd.thread_index, cur->actual_node);
             cur->mr_next = sd.rlist;
             sd.rlist = cur;
             sd.rcount++;
