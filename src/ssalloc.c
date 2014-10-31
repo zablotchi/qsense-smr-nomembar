@@ -25,6 +25,7 @@ static __thread uint8_t ssalloc_free_num[SSALLOC_NUM_ALLOCATORS] = {0};
 #endif 
 
 uint64_t memory_reuse;
+uint64_t freed_nodes;
 
 void
 ssalloc_set(void* mem)
@@ -45,7 +46,8 @@ ssalloc_init()
       assert((void*) ssalloc_app_mem[i] != NULL);
     }
 
-  memory_reuse = 0;  
+  memory_reuse = 0; 
+  freed_nodes = 0; 
 #endif
 }
 
@@ -132,6 +134,7 @@ ssfree_alloc(unsigned int allocator, void* ptr)
 #if defined(SSALLOC_USE_MALLOC)
   free(ptr);
 #else
+  freed_nodes++;
   ssalloc_free_num[allocator]++;
   /* PRINT("free %3d (num_free after: %3d)", ssalloc_free_cur, ssalloc_free_num); */
   ssalloc_free_list[allocator][ssalloc_free_cur[allocator]++] = ptr;

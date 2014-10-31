@@ -72,6 +72,7 @@ static volatile int wakeup_stop;
 
 static uint8_t has_sleeper_thread[NUMBER_OF_SOCKETS * CORES_PER_SOCKET];
 extern uint64_t memory_reuse;
+extern uint64_t freed_nodes;
 
 
 TEST_VARS_GLOBAL;
@@ -492,7 +493,7 @@ main(int argc, char **argv)
     
   thread_data_t* tds = (thread_data_t*) malloc(num_threads * sizeof(thread_data_t));
 
-  fallback.flag = 1;
+  fallback.flag = 0;
 
   for(t = 0; t < num_threads; t++)
     {
@@ -621,6 +622,8 @@ main(int argc, char **argv)
   printf("#txs %zu\t(%-10.0f\n", num_threads, throughput);
   printf("#Mops %.3f\n", throughput / 1e6);
   printf("#Reused nodes %d\n", memory_reuse);
+  printf("#Freed nodes %d\n", freed_nodes);
+
   
   RR_PRINT_UNPROTECTED(RAPL_PRINT_POW);
   RR_PRINT_CORRECTED();    
