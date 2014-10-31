@@ -30,8 +30,6 @@
 #define __SMR_H
 
 #include "mr.h"
-// #include "node.h"
-// #include "test.h"
 
 /* Parameters to the algorithm:
  *  K: Number of hazard pointers per CPU.
@@ -41,6 +39,14 @@
 #define K 2
 #define H (K * sd.nthreads)
 #define R (100 + 2*H)
+
+#ifndef SLEEP_AMOUNT
+    #define SLEEP_AMOUNT 150
+#endif
+
+#ifndef MARGIN
+    #define MARGIN 50
+#endif
 
 // typedef struct hazard_pointer_s {
 //     struct node *  __attribute__ ((__aligned__ (CACHESIZE))) p;
