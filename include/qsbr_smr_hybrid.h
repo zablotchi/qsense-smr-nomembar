@@ -65,11 +65,11 @@ struct shared_thread_data {
 
 struct local_thread_data {
   // mr_node_t *rlist;
-  mr_node_t **plist;
+  void **plist;
   uint64_t rcount;
   uint64_t nthreads;
   uint64_t thread_index;
-  char padding[CACHE_LINE_SIZE - 3*sizeof(uint64_t) - sizeof(mr_node_t **)];
+  char padding[CACHE_LINE_SIZE - 3*sizeof(uint64_t) - sizeof(void **)];
 };
 
 typedef ALIGNED(CACHE_LINE_SIZE) struct shared_thread_data shared_thread_data_t;

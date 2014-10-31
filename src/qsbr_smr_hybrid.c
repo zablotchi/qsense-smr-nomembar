@@ -17,12 +17,13 @@ __thread local_thread_data_t ltd;
 
 int compare (const void *a, const void *b);
 uint8_t is_old_enough(mr_node_t* n);
+inline int ssearch(void **list, size_t size, void *key);
 
 void mr_init_local(uint64_t thread_index, uint64_t nthreads) {
     ltd.thread_index = thread_index;
     ltd.nthreads = nthreads;
     ltd.rcount = 0;
-    ltd.plist = (mr_node_t **) malloc(sizeof(mr_node_t *) * K * nthreads);
+    ltd.plist = (void **) malloc(sizeof(void *) * K * nthreads);
 }
 
 // TODO IGOR OANA add NULL verification after memory allocation
@@ -207,8 +208,8 @@ void scan()
     mr_node_t *tmplist;
 
     /* List of hazard pointers, and its size. */
-    mr_node_t **plist = ltd.plist;
-    uint64_t psize;
+    void **plist = ltd.plist;
+    size_t psize;
 
     /*
      * Make sure that the most recent node to be deleted has been unlinked
@@ -225,7 +226,8 @@ void scan()
     }
     
     /* Stage 2: Sort the plist. */
-    qsort(plist, psize, sizeof(mr_node_t *), compare);
+    // IGOR OANA Don't sort; we are doing linear search
+    // qsort(plist, psize, sizeof(mr_node_t *), compare);
 
     /* Stage 3: Free non-harzardous nodes. */
     //OANA Modified Scan (a lot)
@@ -242,7 +244,8 @@ void scan()
             cur = tmplist;
             tmplist = tmplist->mr_next;
 
-            if (!is_old_enough(cur) || bsearch(&cur, plist, psize, sizeof(mr_node_t *), compare)) {
+            // if (!is_old_enough(cur) || bsearch(&cur, plist, psize, sizeof(mr_node_t *), compare)) {
+            if (ssearch(plist, psize, cur->actual_node)) {
                 //cur->mr_next = this_thread()->rlist;
                 //this_thread()->rlist = cur;
 
@@ -283,4 +286,15 @@ uint8_t is_old_enough(mr_node_t* n) {
 int compare (const void *a, const void *b)
 {
   return ( *(mr_node_t **)a - *(mr_node_t **)b );
+}
+
+/* Debugging function. Leave it around. */
+inline int ssearch(void **list, size_t size, void *key) {
+    int i;
+    for (i = 0; i < size; i++) {
+      if (list[i] == key) {
+        return 1;
+      }
+    }
+    return 0;
 }

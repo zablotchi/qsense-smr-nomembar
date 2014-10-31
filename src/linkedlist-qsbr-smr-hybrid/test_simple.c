@@ -493,30 +493,30 @@ main(int argc, char **argv)
   thread_data_t* tds = (thread_data_t*) malloc(num_threads * sizeof(thread_data_t));
 
   fallback.flag = 1;
+
   for(t = 0; t < num_threads; t++)
     {
       tds[t].id = t;
       tds[t].set = set;
       tds[t].flag = &fallback;
 
-      if (!has_sleeper_thread[t % num_cores]) {
-        has_sleeper_thread[t % num_cores] = 1;
+      // if (!has_sleeper_thread[t % num_cores]) {
+      //   has_sleeper_thread[t % num_cores] = 1;
         
-        // create sleeper thread
-        slthds[t].target_core = t;
-        slthds[t].sleep_millis = SLEEP_AMOUNT;
-        if (pthread_create(&sleeper_threads[t % num_cores], &attr, wakeup, slthds + (t % num_cores))) {
-          printf("ERROR; return code from pthread_create() is %d\n", rc);
-          exit(-1);
-        } 
-      }
+      //   // create sleeper thread
+      //   slthds[t].target_core = t;
+      //   slthds[t].sleep_millis = SLEEP_AMOUNT;
+      //   if (pthread_create(&sleeper_threads[t % num_cores], &attr, wakeup, slthds + (t % num_cores))) {
+      //     printf("ERROR; return code from pthread_create() is %d\n", rc);
+      //     exit(-1);
+      //   } 
+      // }
 
       rc = pthread_create(&threads[t], &attr, test, tds + t);
-      if (rc)
-	{
-	  printf("ERROR; return code from pthread_create() is %d\n", rc);
-	  exit(-1);
-	}
+      if (rc) {
+        printf("ERROR; return code from pthread_create() is %d\n", rc);
+        exit(-1);
+      }
         
     }
     
@@ -531,26 +531,24 @@ main(int argc, char **argv)
   gettimeofday(&end, NULL);
   duration = (end.tv_sec * 1000 + end.tv_usec / 1000) - (start.tv_sec * 1000 + start.tv_usec / 1000);
     
-  for(t = 0; t < num_threads; t++) 
-    {
+  for(t = 0; t < num_threads; t++) {
       rc = pthread_join(threads[t], &status);
-      if (rc) 
-	{
-	  printf("ERROR; return code from pthread_join() is %d\n", rc);
-	  exit(-1);
-	}
+      if (rc) {
+        printf("ERROR; return code from pthread_join() is %d\n", rc);
+        exit(-1);
+      }
     }
 
   // join sleeper threads here
   wakeup_stop = 1;
-  for(t = 0; t < num_cores; t++) {
-    if (has_sleeper_thread[t] 
-      && pthread_join(sleeper_threads[t], &status)) {
+  // for(t = 0; t < num_cores; t++) {
+  //   if (has_sleeper_thread[t] 
+  //     && pthread_join(sleeper_threads[t], &status)) {
       
-      printf("ERROR; return code from pthread_join() is %d\n", rc);
-      exit(-1);
-    }
-  }
+  //     printf("ERROR; return code from pthread_join() is %d\n", rc);
+  //     exit(-1);
+  //   }
+  // }
 
   free(tds);
   free(slthds);
