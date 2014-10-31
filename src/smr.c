@@ -165,7 +165,7 @@ void scan()
         tmplist = tmplist->mr_next;
         printf("[%d] Searching for node %p\n", sd.thread_index, cur->actual_node);
         if (bsearch(&(cur->actual_node), plist, psize, sizeof(void *), compare)) {
-            fprintf(stderr, "Not deleting because HP\n");
+            fprintf(stderr, "[%d]Not deleting %p because HP\n", sd.thread_index, cur->actual_node);
             cur->mr_next = sd.rlist;
             sd.rlist = cur;
             sd.rcount++;
