@@ -155,11 +155,11 @@ void scan()
     /* OANA For now, just do linear search*/
     //qsort(plist, psize, sizeof(void *), compare);
 
-    char* plist_str = NULL;
-    for (i = 0; i < psize; i++){
-      asprintf(&plist_str, "%s:%p", plist_str, plist[i]);
-    }
-    printf("[%d]Plist:%s\n", sd.thread_index, plist_str);
+    // char* plist_str = NULL;
+    // for (i = 0; i < psize; i++){
+    //   asprintf(&plist_str, "%s:%p", plist_str, plist[i]);
+    // }
+    // printf("[%d]Plist:%s\n", sd.thread_index, plist_str);
 
 
     /* Stage 3: Free non-harzardous nodes. */
@@ -170,10 +170,10 @@ void scan()
         /* Pop cur off top of tmplist. */
         cur = tmplist;
         tmplist = tmplist->mr_next;
-        printf("[%d] Searching for node %p\n", sd.thread_index, cur->actual_node);
+        //printf("[%d] Searching for node %p\n", sd.thread_index, cur->actual_node);
         /*OANA here, bsearch was used, with the compar function*/
         if (ssearch(plist, psize, cur->actual_node)) {
-            fprintf(stderr, "[%d]Not deleting %p because HP\n", sd.thread_index, cur->actual_node);
+            //fprintf(stderr, "[%d]Not deleting %p because HP\n", sd.thread_index, cur->actual_node);
             cur->mr_next = sd.rlist;
             sd.rlist = cur;
             sd.rcount++;
