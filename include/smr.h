@@ -58,7 +58,7 @@ hazard_pointer_t *HP;
  
 struct smr_data {
   mr_node_t *rlist;
-  mr_node_t **plist;
+  void **plist;
   uint64_t rcount;
   uint64_t nthreads;
   uint64_t thread_index;

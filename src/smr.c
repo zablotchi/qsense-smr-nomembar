@@ -50,7 +50,7 @@ void mr_init_local(uint64_t thread_index, uint64_t nthreads){
   sd.rcount = 0;
   sd.thread_index = thread_index;
   sd.nthreads = nthreads;
-  sd.plist = (mr_node_t **) malloc(sizeof(mr_node_t *) * K * sd.nthreads);
+  sd.plist = (void **) malloc(sizeof(void *) * K * sd.nthreads);
 }
 
 // void mr_init()
@@ -98,7 +98,7 @@ void mr_reinitialize()
  */
 int compare (const void *a, const void *b)
 {
-  return ( *(mr_node_t **)a - *(mr_node_t **)b );
+  return ( a - b );
 }
 
 /* Debugging function. Leave it around. */
@@ -120,7 +120,7 @@ void scan()
     mr_node_t *tmplist;
 
     /* List of hazard pointers, and its size. */
-    mr_node_t **plist = sd.plist;
+    void **plist = sd.plist;
     uint64_t psize;
 
     /*
@@ -146,7 +146,7 @@ void scan()
     }
     
     /* Stage 2: Sort the plist. */
-    qsort(plist, psize, sizeof(mr_node_t *), compare);
+    qsort(plist, psize, sizeof(void *), compare);
 
     /* Stage 3: Free non-harzardous nodes. */
     tmplist = sd.rlist;
@@ -157,7 +157,7 @@ void scan()
         cur = tmplist;
         tmplist = tmplist->mr_next;
 
-        if (bsearch(&cur, plist, psize, sizeof(mr_node_t *), compare)) {
+        if (bsearch(&(cur->actual_node), plist, psize, sizeof(void *), compare)) {
             cur->mr_next = sd.rlist;
             sd.rlist = cur;
             sd.rcount++;
