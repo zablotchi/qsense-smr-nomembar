@@ -96,9 +96,17 @@ void mr_reinitialize()
  *    0 : a == b
  *  > 0 : a > b
  */
+int compare_equality(const void *a, const void *b)
+{
+  const char **p1 = (const char **) a;
+  const char **p2 = (const char **) b;
+
+  return (strcmp(*p1, *p2));
+}
+
 int compare (const void *a, const void *b)
 {
-  return ( *(void **)a - *(void **)b );
+  return ( *(uint64_t*)a - *(uint64_t*)b );
 }
 
 /* Debugging function. Leave it around. */
@@ -145,16 +153,13 @@ void scan()
             plist[psize++] = HP[i].p;
     }
 
-    // char* plist_str = NULL;
-    // for (i = 0; i < psize; i++){
-    //   asprintf(&plist_str, "%s:%p", plist_str, plist[i]);
-    // }
-    // printf("[%d]Unsorted plist:%s\n", sd.thread_index, plist_str);
+
     
     /* Stage 2: Sort the plist. */
-    qsort(plist, psize, sizeof(void *), compare);
+    /* OANA For now, just do linear search*/
+    //qsort(plist, psize, sizeof(void *), compare);
 
-    // plist_str = NULL;
+    // char* plist_str = NULL;
     // for (i = 0; i < psize; i++){
     //   asprintf(&plist_str, "%s:%p", plist_str, plist[i]);
     // }
@@ -170,7 +175,8 @@ void scan()
         cur = tmplist;
         tmplist = tmplist->mr_next;
         // printf("[%d] Searching for node %p\n", sd.thread_index, cur->actual_node);
-        if (bsearch(&(cur->actual_node), plist, psize, sizeof(void *), compare)) {
+        /*OANA here, bsearch was used, with the compar function*/
+        if (lfind(&(cur->actual_node), plist, psize, sizeof(void *), compare_equality)) {
             // fprintf(stderr, "[%d]Not deleting %p because HP\n", sd.thread_index, cur->actual_node);
             cur->mr_next = sd.rlist;
             sd.rlist = cur;
