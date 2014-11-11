@@ -112,7 +112,7 @@ test(void* thread)
   int phys_id = the_cores[ID];
   set_cpu(phys_id);
   ssalloc_init();
-  mr_init_local(ID, num_threads);
+  // OANATEST mr_init_local(ID, num_threads);
   // printf("[%d] there are %d threads\n", ID, (int)num_threads);
 
   DS_TYPE* set = td->set;
@@ -246,7 +246,7 @@ test(void* thread)
   ssmem_term();
   free(alloc);
 #endif
-  mr_thread_exit();
+  // OANATEST mr_thread_exit();
   pthread_exit(NULL);
 }
 
@@ -414,7 +414,7 @@ main(int argc, char **argv)
   stop = 0;
     
   // DS_TYPE* set = DS_NEW();
-  mr_init_global(num_threads);
+  // OANATEST mr_init_global(num_threads);
   DS_TYPE* set;
   list_init(&set);
 
