@@ -24,7 +24,7 @@
  * Copyright (c) Thomas E. Hart.
  */
  
-//#include "qsbr.h"
+#include "qsbr.h"
 #include "list.h"
 #include "atomic_ops_if.h"
 #include "utils.h"
@@ -138,10 +138,10 @@ int insert(struct list *l, long key)
 
     // backoff_reset();
 
-    /*while (n == NULL) {
+    while (n == NULL) {
         quiescent_state(NOT_FUZZY);
         UNUSED node_t *n = ssalloc_alloc(0, sizeof(node_t));
-    }*/
+    }
 
     while (1) {
         if (find(head, key)) {
