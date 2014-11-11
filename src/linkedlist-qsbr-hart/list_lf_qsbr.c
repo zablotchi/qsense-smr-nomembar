@@ -102,7 +102,7 @@ int find (node_t **head, long key)
                 // backoff_delay();
                 goto try_again;
             }
-            free_node_later(cur);
+            //free_node_later(cur);
             next = (node_t *)((uint64_t)next-1);
 
         } else {
@@ -186,7 +186,7 @@ int delete(struct list *l, long key)
         MEM_BARRIER;
         if (CAS_PTR_bool(list_data.prev, 
                list_data.cur, list_data.next))
-            free_node_later(list_data.cur); /* Reclaim */
+            //free_node_later(list_data.cur); /* Reclaim */
 
         /* 
          * If we want to revent the possibility of there being an 
@@ -218,7 +218,7 @@ int search (struct list *l, long key)
                 // backoff_delay();
                 goto try_again;
             }
-            free_node_later(cur);
+            //free_node_later(cur);
             next = (node_t *)((uint64_t)next-1);
 
         } else {
