@@ -20,6 +20,8 @@
 #include "common.h"
 #include "atomic_ops.h"
 #include "rapl_read.h"
+#include "lock_if.h"
+
 #ifdef __sparc__
 #  include <sys/types.h>
 #  include <sys/processor.h>
