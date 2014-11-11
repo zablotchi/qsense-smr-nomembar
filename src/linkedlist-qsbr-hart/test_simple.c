@@ -556,6 +556,10 @@ main(int argc, char **argv)
   RR_PRINT_CORRECTED();    
   RETRY_STATS_PRINT(total, putting_count_total, removing_count_total, putting_count_total_succ + removing_count_total_succ);    
 
+  printf("ptlock: %d\n", sizeof(ptlock_t));
+  printf("int: %d\n", sizeof(int));
+  printf("CACHELINESIZE: %d\n", CACHE_LINE_SIZE);
+
   pthread_exit(NULL);
     
   return 0;
