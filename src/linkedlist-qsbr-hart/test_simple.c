@@ -198,12 +198,12 @@ test(void* thread)
   while (stop == 0) 
     {
       TEST_LOOP(NULL);
-      /*qcount++;
+      qcount++;
 
       if (qcount== QUIESCENCE_THRESHOLD){
         quiescent_state(FUZZY);
         qcount = 0;
-      }*/
+      }
     }
 
   barrier_cross(&barrier);
