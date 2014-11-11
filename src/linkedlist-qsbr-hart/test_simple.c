@@ -20,7 +20,6 @@
 #include "common.h"
 #include "atomic_ops.h"
 #include "rapl_read.h"
-#include "lock_if.h"
 
 #ifdef __sparc__
 #  include <sys/types.h>
@@ -557,10 +556,6 @@ main(int argc, char **argv)
   RR_PRINT_UNPROTECTED(RAPL_PRINT_POW);
   RR_PRINT_CORRECTED();    
   RETRY_STATS_PRINT(total, putting_count_total, removing_count_total, putting_count_total_succ + removing_count_total_succ);    
-
-  printf("ptlock: %d\n", sizeof(ptlock_t));
-  printf("int: %d\n", sizeof(int));
-  printf("CACHELINESIZE: %d\n", CACHE_LINE_SIZE);
 
   pthread_exit(NULL);
     

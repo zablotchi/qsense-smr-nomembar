@@ -33,6 +33,7 @@
 struct qsbr_globals {
     ALIGNED(CACHE_LINE_SIZE) ptlock_t update_lock;
     ALIGNED(CACHE_LINE_SIZE) int global_epoch ;
+    char padding[CACHE_LINE_SIZE - sizeof(ptlock_t) - sizeof(int)];
     // OANA IGOR Should we pad here? It's not clear how big the padding should be...
 };
 
