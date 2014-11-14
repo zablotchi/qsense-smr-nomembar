@@ -36,7 +36,7 @@
 #define DEFAULT_EFFECTIVE		1
 
 static volatile int stop;
-extern __thread ssmem_allocator_t* alloc;
+//extern __thread ssmem_allocator_t* alloc;
 
 #define TRANSACTIONAL                   4
 

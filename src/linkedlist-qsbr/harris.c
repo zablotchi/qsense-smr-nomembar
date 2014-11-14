@@ -22,7 +22,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-
+#include "qsbr.h"
 #include "harris.h"
 
 RETRY_STATS_VARS;
@@ -106,16 +106,14 @@ harris_search(intset_t *set, skey_t key, node_t **left_node) {
 		CLEANUP_TRY();
 		/* Remove one or more marked nodes */
 		if (ATOMIC_CAS_MB(&(*left_node)->next, left_node_next, right_node)) {
-#if GC == 1
 			node_t* cur = left_node_next;
 			do
 			{
 				node_t* free = cur;
 				cur = (node_t*) get_unmarked_ref((long) cur->next);
-				ssmem_free(alloc, (void*) free);
+				free_node_later((void*) free);
 			}
 			while (cur != right_node);
-#endif
 
 			if (!(right_node->next && is_marked_ref((long) right_node->next))) {
 				return right_node;
@@ -151,12 +149,10 @@ int harris_insert(intset_t *set, skey_t key, sval_t val) {
 		UPDATE_TRY();
 		right_node = harris_search(set, key, &left_node);
 		if (right_node->key == key) {
-#if GC == 1
 			if (unlikely(newnode != NULL))
 			{
-				ssmem_free(alloc, (void*) newnode);
+				free_node_later((void*) newnode);
 			}
-#endif
 			return 0;
 		}
 
@@ -199,10 +195,8 @@ sval_t harris_delete(intset_t *set, skey_t key) {
 	} while (1);
 
 	if (likely(ATOMIC_CAS_MB(&left_node->next, right_node, right_node_next))) {
-#if GC == 1
-		ssmem_free(alloc, (void*) get_unmarked_ref((long) right_node));
-#endif
-		;
+		free_node_later((void*) get_unmarked_ref((long) right_node));
+		
 	} else {
 		harris_search(set, key, &left_node);
 	}

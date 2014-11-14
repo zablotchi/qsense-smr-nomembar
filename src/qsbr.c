@@ -234,6 +234,7 @@ void free_node_later (void *q)
 {
     qsbr_data_t *t = &(qd[qad.thread_index]);
 
+    //Use allocator 0 for regular nodes and allocator 1 for mr_nodes
     mr_node_t* wrapper_node = ssalloc_alloc(1, sizeof(mr_node_t));
     wrapper_node->actual_node = q;
 

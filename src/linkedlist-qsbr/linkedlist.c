@@ -10,25 +10,14 @@
 
 #include "linkedlist.h"
 
-__thread ssmem_allocator_t* alloc;
+//__thread ssmem_allocator_t* alloc;
 
 node_t*
 new_node(skey_t key, sval_t val, node_t* next, int initializing) {
 	volatile node_t* node;
 
-#if GC == 1
-	if (unlikely(initializing))
-	{
-		node = (volatile node_t *) ssalloc(sizeof(node_t));
-	}
-	else
-	{
-		node = (volatile node_t *) ssmem_alloc(alloc, sizeof(node_t));
-	}
-
-#else
-	node = (volatile node_t *) ssalloc(sizeof(node_t));
-#endif
+	// Use allocator 0 for nodes, allocator 1 for mr_nodes
+	node = (volatile node_t *) ssalloc_alloc(0, sizeof(node_t));
 
 	if (node == NULL) {
 		perror("malloc @ new_node");
