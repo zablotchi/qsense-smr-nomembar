@@ -28,7 +28,6 @@
 #include "intset.h"
 #include "qsbr.h"
 
-
 /* ################################################################### *
  * Definition of macros: per data structure
  * ################################################################### */
@@ -108,7 +107,7 @@ test(void* thread) {
     int phys_id = the_cores[ID];
     set_cpu(phys_id);
     ssalloc_init();
-    mr_init_local(ID, num_threads);     
+    mr_init_local(ID, num_threads);
 
     DS_TYPE* set = td->set;
 
@@ -136,7 +135,6 @@ test(void* thread) {
 #endif
 
     seeds = seed_rand();
-
 
     RR_INIT(phys_id);
     barrier_cross(&barrier);
@@ -182,15 +180,14 @@ test(void* thread) {
 
     int qcount = 0;
 
-      while (stop == 0) 
-    {
-      TEST_LOOP(NULL);
-      qcount++;
+    while (stop == 0) {
+        TEST_LOOP(NULL);
+        qcount++;
 
-      if (qcount== QUIESCENCE_THRESHOLD){
-        quiescent_state(FUZZY);
-        qcount = 0;
-      }
+        if (qcount == QUIESCENCE_THRESHOLD) {
+            quiescent_state(FUZZY);
+            qcount = 0;
+        }
     }
 
     barrier_cross(&barrier);

@@ -24,7 +24,7 @@
 #include "utils.h"
 #include "ssalloc.h"
 #include "lock_if.h"
-#include "linkedlist-qsbr-hart/node.h"
+#include "linkedlist-qsbr/linkedlist.h" 
 
 #define NOT_ENTERED 0
 #define ENTERED 1

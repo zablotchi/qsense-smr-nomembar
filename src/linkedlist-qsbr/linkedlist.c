@@ -14,49 +14,49 @@
 
 node_t*
 new_node(skey_t key, sval_t val, node_t* next, int initializing) {
-	volatile node_t* node;
+    volatile node_t* node;
 
-	// Use allocator 0 for nodes, allocator 1 for mr_nodes
-	node = (volatile node_t *) ssalloc_alloc(0, sizeof(node_t));
+    // Use allocator 0 for nodes, allocator 1 for mr_nodes
+    node = (volatile node_t *) ssalloc_alloc(0, sizeof(node_t));
 
-	if (node == NULL) {
-		perror("malloc @ new_node");
-		exit(1);
-	}
+    if (node == NULL) {
+        perror("malloc @ new_node");
+        exit(1);
+    }
 
-	node->key = key;
-	node->val = val;
-	node->next = next;
-	return (node_t*) node;
+    node->key = key;
+    node->val = val;
+    node->next = next;
+    return (node_t*) node;
 }
 
 intset_t*
 set_new() {
-	intset_t *set;
-	node_t *min, *max;
+    intset_t *set;
+    node_t *min, *max;
 
-	if ((set = (intset_t*) ssalloc_aligned(CACHE_LINE_SIZE, sizeof(intset_t)))
-			== NULL) {
-		perror("malloc");
-		exit(1);
-	}
+    if ((set = (intset_t*) ssalloc_aligned(CACHE_LINE_SIZE, sizeof(intset_t)))
+            == NULL) {
+        perror("malloc");
+        exit(1);
+    }
 
-	max = new_node(KEY_MAX, 0, NULL, 1);
-	min = new_node(KEY_MIN, 0, max, 1);
-	set->head = min;
+    max = new_node(KEY_MAX, 0, NULL, 1);
+    min = new_node(KEY_MIN, 0, max, 1);
+    set->head = min;
 
-	return set;
+    return set;
 }
 
 void set_delete(intset_t *set) {
-	node_t *node, *next;
+    node_t *node, *next;
 
-	node = set->head;
-	while (node != NULL) {
-		next = node->next;
-		free((void*) node);
-		node = next;
-	}
-	free(set);
+    node = set->head;
+    while (node != NULL) {
+        next = node->next;
+        free((void*) node);
+        node = next;
+    }
+    free(set);
 }
 

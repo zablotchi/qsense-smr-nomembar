@@ -35,31 +35,31 @@ RETRY_STATS_VARS;
  *  - get_(un)marked_ref sets the mark before returning the node.
  */
 inline int is_marked_ref(long i) {
-	/* return (int) (i & (LONG_MIN+1)); */
-	return (int) (i & 0x1L);
+    /* return (int) (i & (LONG_MIN+1)); */
+    return (int) (i & 0x1L);
 }
 
 inline long unset_mark(long i) {
-	/* i &= LONG_MAX-1; */
-	i &= ~0x1L;
-	return i;
+    /* i &= LONG_MAX-1; */
+    i &= ~0x1L;
+    return i;
 }
 
 inline long set_mark(long i) {
-	/* i = unset_mark(i); */
-	/* i += 1; */
-	i |= 0x1L;
-	return i;
+    /* i = unset_mark(i); */
+    /* i += 1; */
+    i |= 0x1L;
+    return i;
 }
 
 inline long get_unmarked_ref(long w) {
-	/* return unset_mark(w); */
-	return w & ~0x1L;
+    /* return unset_mark(w); */
+    return w & ~0x1L;
 }
 
 inline long get_marked_ref(long w) {
-	/* return set_mark(w); */
-	return w | 0x1L;
+    /* return set_mark(w); */
+    return w | 0x1L;
 }
 
 /*
@@ -72,69 +72,73 @@ inline long get_marked_ref(long w) {
  */
 node_t*
 harris_search(intset_t *set, skey_t key, node_t **left_node) {
-	node_t *left_node_next, *right_node;
-	left_node_next = set->head;
+    node_t *left_node_next, *right_node;
+    left_node_next = set->head;
 
-	do {
-		PARSE_TRY();
-		node_t *t = set->head;
-		node_t *t_next = set->head->next;
+    do {
+        PARSE_TRY();
+        node_t *t = set->head;
+        node_t *t_next = set->head->next;
 
-		/* Find left_node and right_node */
-		do {
-			if (!is_marked_ref((long) t_next)) {
-				(*left_node) = t;
-				left_node_next = t_next;
-			}
-			t = (node_t *) get_unmarked_ref((long) t_next);
-			if (!t->next) {
-				break;
-			}
-			t_next = t->next;
-		} while (is_marked_ref((long) t_next) || (t->key < key));
-		right_node = t;
+        /* Find left_node and right_node */
+        do {
 
-		/* Check that nodes are adjacent */
-		if (left_node_next == right_node) {
-			if (right_node->next && is_marked_ref((long) right_node->next)) {
-				continue;
-			} else {
-				return right_node;
-			}
-		}
+            //OANA IGOR
+            if (t->key == 10000) {
+                fprintf(stderr, "touched illegal node FUUUUUUUUUUUUUUUU\n");
+            }
+            
+            if (!is_marked_ref((long) t_next)) {
+                (*left_node) = t;
+                left_node_next = t_next;
+            }
+            t = (node_t *) get_unmarked_ref((long) t_next);
+            if (!t->next) {
+                break;
+            }
+            t_next = t->next;
+        } while (is_marked_ref((long) t_next) || (t->key < key));
+        right_node = t;
 
-		CLEANUP_TRY();
-		/* Remove one or more marked nodes */
-		if (ATOMIC_CAS_MB(&(*left_node)->next, left_node_next, right_node)) {
-			node_t* cur = left_node_next;
-			do
-			{
-				node_t* free = cur;
-				cur = (node_t*) get_unmarked_ref((long) cur->next);
-				free_node_later((void*) free);
-			}
-			while (cur != right_node);
+        /* Check that nodes are adjacent */
+        if (left_node_next == right_node) {
+            if (right_node->next && is_marked_ref((long) right_node->next)) {
+                continue;
+            } else {
+                return right_node;
+            }
+        }
 
-			if (!(right_node->next && is_marked_ref((long) right_node->next))) {
-				return right_node;
-			}
-		}
-	} while (1);
+        CLEANUP_TRY();
+        /* Remove one or more marked nodes */
+        if (ATOMIC_CAS_MB(&(*left_node)->next, left_node_next, right_node)) {
+            node_t* cur = left_node_next;
+            do {
+                node_t* free = cur;
+                cur = (node_t*) get_unmarked_ref((long) cur->next);
+                free_node_later((void*) free);
+            } while (cur != right_node);
+
+            if (!(right_node->next && is_marked_ref((long) right_node->next))) {
+                return right_node;
+            }
+        }
+    } while (1);
 }
 
 /*
  * harris_find returns whether there is a node in the list owning value val.
  */
 sval_t harris_find(intset_t *set, skey_t key) {
-	node_t *right_node, *left_node;
-	left_node = set->head;
+    node_t *right_node, *left_node;
+    left_node = set->head;
 
-	right_node = harris_search(set, key, &left_node);
-	if ((right_node->next == NULL) || right_node->key != key) {
-		return 0;
-	} else {
-		return right_node->val;
-	}
+    right_node = harris_search(set, key, &left_node);
+    if ((right_node->next == NULL) || right_node->key != key) {
+        return 0;
+    } else {
+        return right_node->val;
+    }
 }
 
 /*
@@ -142,31 +146,30 @@ sval_t harris_find(intset_t *set, skey_t key) {
  * (if the value was absent) or does nothing (if the value is already present).
  */
 int harris_insert(intset_t *set, skey_t key, sval_t val) {
-	node_t *newnode = NULL, *right_node, *left_node;
-	left_node = set->head;
+    node_t *newnode = NULL, *right_node, *left_node;
+    left_node = set->head;
 
-	do {
-		UPDATE_TRY();
-		right_node = harris_search(set, key, &left_node);
-		if (right_node->key == key) {
-			if (unlikely(newnode != NULL))
-			{
-				free_node_later((void*) newnode);
-			}
-			return 0;
-		}
+    do {
+        UPDATE_TRY();
+        right_node = harris_search(set, key, &left_node);
+        if (right_node->key == key) {
+            if (unlikely(newnode != NULL)) {
+                free_node_later((void*) newnode);
+            }
+            return 0;
+        }
 
-		if (likely(newnode == NULL)) {
-			newnode = new_node(key, val, right_node, 0);
-		} else {
-			newnode->next = right_node;
-		}
+        if (likely(newnode == NULL)) {
+            newnode = new_node(key, val, right_node, 0);
+        } else {
+            newnode->next = right_node;
+        }
 #ifdef __tile__
-		MEM_BARRIER;
+        MEM_BARRIER;
 #endif
-		if (ATOMIC_CAS_MB(&left_node->next, right_node, newnode))
-			return 1;
-	} while (1);
+        if (ATOMIC_CAS_MB(&left_node->next, right_node, newnode))
+            return 1;
+    } while (1);
 }
 
 /*
@@ -175,45 +178,45 @@ int harris_insert(intset_t *set, skey_t key, sval_t val) {
  * The deletion is logical and consists of setting the node mark bit to 1.
  */
 sval_t harris_delete(intset_t *set, skey_t key) {
-	node_t *right_node, *right_node_next, *left_node;
-	left_node = set->head;
-	sval_t ret = 0;
+    node_t *right_node, *right_node_next, *left_node;
+    left_node = set->head;
+    sval_t ret = 0;
 
-	do {
-		UPDATE_TRY();
-		right_node = harris_search(set, key, &left_node);
-		if (right_node->key != key) {
-			return 0;
-		}
-		right_node_next = right_node->next;
-		if (!is_marked_ref((long) right_node_next)) {
-			if (ATOMIC_CAS_MB(&right_node->next, right_node_next, get_marked_ref((long) right_node_next))) {
-				ret = right_node->val;
-				break;
-			}
-		}
-	} while (1);
+    do {
+        UPDATE_TRY();
+        right_node = harris_search(set, key, &left_node);
+        if (right_node->key != key) {
+            return 0;
+        }
+        right_node_next = right_node->next;
+        if (!is_marked_ref((long) right_node_next)) {
+            if (ATOMIC_CAS_MB(&right_node->next, right_node_next, get_marked_ref((long) right_node_next))) {
+                ret = right_node->val;
+                break;
+            }
+        }
+    } while (1);
 
-	if (likely(ATOMIC_CAS_MB(&left_node->next, right_node, right_node_next))) {
-		free_node_later((void*) get_unmarked_ref((long) right_node));
-		
-	} else {
-		harris_search(set, key, &left_node);
-	}
+    if (likely(ATOMIC_CAS_MB(&left_node->next, right_node, right_node_next))) {
+        free_node_later((void*) get_unmarked_ref((long) right_node));
 
-	return ret;
+    } else {
+        harris_search(set, key, &left_node);
+    }
+
+    return ret;
 }
 
 int set_size(intset_t *set) {
-	int size = 0;
-	node_t* node;
+    int size = 0;
+    node_t* node;
 
-	/* We have at least 2 elements */
-	node = (node_t*) get_unmarked_ref((long) set->head->next);
-	while ((node_t*) get_unmarked_ref((long) node->next) != NULL) {
-		if (!is_marked_ref((long) node->next))
-			size++;
-		node = (node_t*) get_unmarked_ref((long) node->next);
-	}
-	return size;
+    /* We have at least 2 elements */
+    node = (node_t*) get_unmarked_ref((long) set->head->next);
+    while ((node_t*) get_unmarked_ref((long) node->next) != NULL) {
+        if (!is_marked_ref((long) node->next))
+            size++;
+        node = (node_t*) get_unmarked_ref((long) node->next);
+    }
+    return size;
 }
