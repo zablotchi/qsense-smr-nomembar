@@ -31,12 +31,13 @@
 #define DONE 2
 
 struct qsbr_globals {
-    ptlock_t update_lock ALIGNED(CACHE_LINE_SIZE);
-    int global_epoch ALIGNED(CACHE_LINE_SIZE);
+    ALIGNED(CACHE_LINE_SIZE) ptlock_t update_lock;
+    ALIGNED(CACHE_LINE_SIZE) int global_epoch ;
+    char padding[CACHE_LINE_SIZE - sizeof(ptlock_t) - sizeof(int)];
     // OANA IGOR Should we pad here? It's not clear how big the padding should be...
 };
 
-struct qsbr_globals *qg ALIGNED(CACHE_LINE_SIZE);
+ALIGNED(CACHE_LINE_SIZE) struct qsbr_globals *qg ;
 
 struct qsbr_data {
     /* EBR per-thread data:

@@ -43,6 +43,7 @@ struct list_aux_data {
     node_t **prev;
     node_t *next;
     node_t *cur;
+    char padding[CACHE_LINE_SIZE - 2*sizeof(node_t*) - sizeof(node_t**)];
 };
 
 typedef ALIGNED(CACHE_LINE_SIZE) struct list_aux_data list_aux_data_t;
