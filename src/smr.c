@@ -165,6 +165,7 @@ void scan()
         tmplist = tmplist->mr_next;
         /*OANA here, bsearch was used, with the compar function*/
         if (ssearch(plist, psize, cur->actual_node)) {
+          printf("found something!\n");
             cur->mr_next = sd.rlist;
             sd.rlist = cur;
             sd.rcount++;
