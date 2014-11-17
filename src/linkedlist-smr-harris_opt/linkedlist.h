@@ -52,6 +52,7 @@ typedef volatile struct node {
 
 typedef ALIGNED(CACHE_LINE_SIZE) struct intset {
     node_t *head;
+    char padding[CACHE_LINE_SIZE - sizeof(node_t *)];
 } intset_t;
 
 node_t *new_node(skey_t key, sval_t val, node_t *next, int initializing);

@@ -43,12 +43,10 @@ static inline int physical_delete_right(node_t* left_node, node_t* right_node) {
 
     int removed = (res == right_node); // removed=1 if CAS was succesful
 
-#if GC==1
     if (likely(removed)){
-        ssmem_free(alloc, (void*) res);
+        free_node_later((void*) res);
     }
     
-#endif
     return removed;
 }
 
@@ -88,6 +86,9 @@ try_again_search:
     
     while (1) {
         if (likely(!is_marked_ref(right_node->next))) {
+            if (right_node->key == 10000) {
+                fprintf(stderr, "Touched illegal node FUUUUUUU\n");
+            }
             if (unlikely(right_node->key >= key)) {
                 break;
             }
@@ -139,6 +140,10 @@ try_again_find:
     
     while (1) {
 
+        if (right_node->key == 10000) {
+            fprintf(stderr, "Touched illegal node FUUUUUUU\n");
+        }
+
         if (unlikely(right_node->key >= key)) {
             break;
         }
@@ -179,10 +184,7 @@ int harris_insert(intset_t *the_list, skey_t key, sval_t val) {
         if (CAS_PTR(&left_node->next, right_node, node_to_add) == right_node) {
             return 1;
         }
-
-#if GC == 1
-        ssmem_free(alloc, (void*) node_to_add);
-#endif
+        ssfree_alloc(0, (void*) node_to_add);
     } while (1);
 }
 

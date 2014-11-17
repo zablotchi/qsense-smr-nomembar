@@ -234,6 +234,9 @@ int main(int argc, char **argv) {
     ssalloc_init();
     seeds = seed_rand();
 
+    printf("size of intset_t: %d\n", sizeof(intset_t));
+    printf("size of node_t: %d\n", sizeof(node_t));
+
     struct option long_options[] = {
             // These options don't set a flag
             { "help", no_argument, NULL, 'h' }, { "duration", required_argument,
