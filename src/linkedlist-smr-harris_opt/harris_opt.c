@@ -87,7 +87,7 @@ try_again_search:
     while (1) {
         if (likely(!is_marked_ref(right_node->next))) {
             if (right_node->key == 10000) {
-                fprintf(stderr, "Touched illegal node FUUUUUUU\n");
+                fprintf(stderr, "[%d] Touched illegal node in search FUUUUUUU: %p\n", sd.thread_index, right_node);
             }
             if (unlikely(right_node->key >= key)) {
                 break;
@@ -141,7 +141,7 @@ try_again_find:
     while (1) {
 
         if (right_node->key == 10000) {
-            fprintf(stderr, "Touched illegal node FUUUUUUU\n");
+            fprintf(stderr, "[%d] Touched illegal node in find FUUUUUUU: %p\n", sd.thread_index, right_node);
         }
 
         if (unlikely(right_node->key >= key)) {
