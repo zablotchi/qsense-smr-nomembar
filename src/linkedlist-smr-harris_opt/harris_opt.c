@@ -73,6 +73,10 @@ try_again_search:
             goto try_again_search;
         }
         offset = 1-offset;
+
+        if (right_node->key == 10000) {
+            fprintf(stderr, "Touched illegal node in search\n");
+        }
         
         if (likely(!is_marked_ref(right_node->next))) {
             if (unlikely(right_node->key >= key)) {
