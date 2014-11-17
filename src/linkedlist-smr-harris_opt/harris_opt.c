@@ -8,9 +8,9 @@
  */
 
 #include "linkedlist.h"
-// #include "smr.h"
+#include "smr.h"
 
-// extern __thread smr_data_t sd;
+extern __thread smr_data_t sd;
 
 
 RETRY_STATS_VARS;
@@ -36,17 +36,18 @@ get_marked_ref(node_t* w) {
     return (node_t*) ((uintptr_t) w | 0x1L);
 }
 
-static inline int physical_delete_right(node_t* left_node, node_t** right_node) {
-    node_t* new_next = get_unmarked_ref((*right_node)->next);
-    node_t* res = CAS_PTR(&left_node->next, (*right_node), new_next);
-    int removed = (res == *right_node); // removed=1 if CAS was succesful
+static inline int physical_delete_right(node_t* left_node, node_t* right_node) {
+    node_t* new_next = get_unmarked_ref(right_node->next);
+    
+    node_t* res = CAS_PTR(&left_node->next, right_node, new_next);
+
+    int removed = (res == right_node); // removed=1 if CAS was succesful
 
 #if GC==1
-    if (likely(removed))
-    {
-        *right_node = new_next;
+    if (likely(removed)){
         ssmem_free(alloc, (void*) res);
     }
+    
 #endif
     return removed;
 }
@@ -63,19 +64,27 @@ static inline node_t*
 list_search(intset_t* set, skey_t key, node_t** left_node_ptr) {
     PARSE_TRY();
     node_t *left_node, *right_node;
-    // size_t base=K*sd.thread_index, offset=0;
-    // try_again:
+    size_t base=K*sd.thread_index, offset=0;
+
+try_again_search:
 
     left_node = set->head;
-    // HP[base + offset].p = left_node;
-    // MEM_BARRIER;
-    // if (left_node != set->head) {goto try_again;}
-    // offset = 1-offset;
+    
+    HP[base + offset].p = left_node;
+    MEM_BARRIER;
+    if (left_node != set->head) {
+        goto try_again_search;
+    }
+    offset = 1-offset;
+    
     right_node = set->head->next;
-    // HP[base + offset].p = right_node;
-    // MEM_BARRIER;
-    // if (right_node != set->head->next) {goto try_again;}
-    // offset = 1-offset;
+    
+    HP[base + offset].p = right_node;
+    MEM_BARRIER;
+    if (right_node != set->head->next) {
+        goto try_again_search;
+    }
+    offset = 1-offset;
     
     while (1) {
         if (likely(!is_marked_ref(right_node->next))) {
@@ -83,17 +92,18 @@ list_search(intset_t* set, skey_t key, node_t** left_node_ptr) {
                 break;
             }
             left_node = right_node;
-            right_node = get_unmarked_ref(right_node->next);
         } else {
             CLEANUP_TRY();
-            physical_delete_right(left_node, &right_node);
+            physical_delete_right(left_node, right_node);
         }
-        //right_node = get_unmarked_ref(right_node->next);
+        right_node = get_unmarked_ref(right_node->next);
         
-        // HP[base + offset].p = right_node;
-        // MEM_BARRIER;
-        // if (right_node != set->head->next) {goto try_again;}
-        // offset = 1-offset;
+        HP[base + offset].p = right_node;
+        MEM_BARRIER;
+        if (right_node != get_unmarked_ref(left_node->next)) {
+            goto try_again_search;
+        }
+        offset = 1-offset;
     }
     *left_node_ptr = left_node;
     return right_node;
@@ -103,22 +113,48 @@ list_search(intset_t* set, skey_t key, node_t** left_node_ptr) {
  * returns a value different from 0 if there is a node in the list owning value val.
  */
 sval_t harris_find(intset_t* the_list, skey_t key) {
-    node_t* node;
-try_again_find:
-    node = the_list->head->next;
-    // HP[K * sd.thread_index].p = node;
-    // MEM_BARRIER;
-    // if (node != the_list->head->next) {goto try_again_find;}
-    // offset = 1-offset;
 
-    PARSE_TRY();
-    while (likely(node->key < key)) {
-        node = get_unmarked_ref(node->next);
+    node_t *left_node, *right_node;
+    size_t base=K*sd.thread_index, offset=0;
+
+try_again_find:
+
+    left_node = the_list->head;
+    
+    HP[base + offset].p = left_node;
+    MEM_BARRIER;
+    if (left_node != the_list->head) {
+        goto try_again_find;
+    }
+    offset = 1-offset;
+    
+    right_node = the_list->head->next;
+    
+    HP[base + offset].p = right_node;
+    MEM_BARRIER;
+    if (right_node != the_list->head->next) {
+        goto try_again_find;
+    }
+    offset = 1-offset;
+    
+    while (1) {
+
+        if (unlikely(right_node->key >= key)) {
+            break;
+        }
+        left_node = right_node;        
+        right_node = get_unmarked_ref(right_node->next);
+        
+        HP[base + offset].p = right_node;
+        MEM_BARRIER;
+        if (right_node != get_unmarked_ref(left_node->next)) {
+            goto try_again_find;
+        }
+        offset = 1-offset;
     }
 
-
-    if (node->key == key && !is_marked_ref(node->next)) {
-        return node->val;
+    if (right_node->key == key && !is_marked_ref(right_node->next)) {
+        return right_node->val;
     }
     return 0;
 }
@@ -177,7 +213,7 @@ sval_t harris_delete(intset_t *the_list, skey_t key) {
 
     sval_t ret = right_node->val;
 
-    physical_delete_right(left_node, &right_node);
+    physical_delete_right(left_node, right_node);
 
     return ret;
 }

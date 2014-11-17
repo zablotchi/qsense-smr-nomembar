@@ -26,6 +26,7 @@
 #endif
 
 #include "intset.h"
+#include "smr.h"
 
 /* ################################################################### *
  * Definition of macros: per data structure
@@ -106,6 +107,7 @@ test(void* thread) {
     int phys_id = the_cores[ID];
     set_cpu(phys_id);
     ssalloc_init();
+    mr_init_local(ID, num_threads);
 
     DS_TYPE* set = td->set;
 
@@ -381,6 +383,8 @@ int main(int argc, char **argv) {
     stop = 0;
 
     DS_TYPE* set = DS_NEW();
+    mr_init_global(num_threads); 
+    
     assert(set != NULL);
 
     /* Initializes the local data */
@@ -529,7 +533,7 @@ int main(int argc, char **argv) {
     printf("#txs %zu\t(%-10.0f\n", num_threads, throughput);
     printf("#Mops %.3f\n", throughput / 1e6);
 
-    RR_PRINT_UNPROTECTED(RAPL_PRINT_POW); RR_PRINT_CORRECTED(); RETRY_STATS_PRINT(total, putting_count_total, removing_count_total, putting_count_total_succ + removing_count_total_succ);
+    RR_PRINT_UNPROTECTED(RAPL_PRINT_POW);RR_PRINT_CORRECTED();RETRY_STATS_PRINT(total, putting_count_total, removing_count_total, putting_count_total_succ + removing_count_total_succ);
 
     pthread_exit(NULL);
 
