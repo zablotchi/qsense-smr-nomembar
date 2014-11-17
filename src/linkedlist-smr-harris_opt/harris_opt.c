@@ -68,23 +68,31 @@ try_again_search:
 
     left_node = set->head;
     
-    HP[base + offset].p = left_node;
-    MEM_BARRIER;
-    if (left_node != set->head) {
-        goto try_again_search;
-    }
-    offset = 1-offset;
+    // HP[base + offset].p = left_node;
+    // MEM_BARRIER;
+    // if (left_node != set->head) {
+    //     goto try_again_search;
+    // }
+    // offset = 1-offset;
     
     right_node = set->head->next;
     
-    HP[base + offset].p = right_node;
-    MEM_BARRIER;
-    if (right_node != set->head->next) {
-        goto try_again_search;
-    }
-    offset = 1-offset;
+    // HP[base + offset].p = right_node;
+    // MEM_BARRIER;
+    // if (right_node != set->head->next) {
+    //     goto try_again_search;
+    // }
+    // offset = 1-offset;
     
     while (1) {
+
+        HP[base + offset].p = right_node;
+        MEM_BARRIER;
+        if (right_node != get_unmarked_ref(left_node->next)) {
+            goto try_again_search;
+        }
+        offset = 1-offset;
+
         if (right_node->key == 10000) {
             fprintf(stderr, "[%d] Touched illegal node in search FUUUUUUU: %p\n", sd.thread_index, right_node);
         }
@@ -98,14 +106,9 @@ try_again_search:
             CLEANUP_TRY();
             physical_delete_right(left_node, right_node);
         }
-        right_node = get_unmarked_ref(right_node->next);
+        // right_node = get_unmarked_ref(right_node->next);
+        right_node = get_unmarked_ref(left_node->next);
         
-        HP[base + offset].p = right_node;
-        MEM_BARRIER;
-        if (right_node != get_unmarked_ref(left_node->next)) {
-            goto try_again_search;
-        }
-        offset = 1-offset;
     }
     *left_node_ptr = left_node;
     return right_node;
