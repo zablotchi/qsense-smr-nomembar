@@ -89,7 +89,7 @@ try_again_search:
         HP[base + offset].p = right_node;
         MEM_BARRIER;
         if (right_node != get_unmarked_ref(left_node->next)) {
-            fprintf(stderr, "Trying again\n");
+            //fprintf(stderr, "Trying again\n");
             goto try_again_search;
         }
         offset = 1-offset;
