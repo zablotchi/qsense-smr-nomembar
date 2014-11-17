@@ -23,7 +23,6 @@
  * GNU General Public License for more details.
  */
 
-
 #include "linkedlist.h"
 
 /* ################################################################### *

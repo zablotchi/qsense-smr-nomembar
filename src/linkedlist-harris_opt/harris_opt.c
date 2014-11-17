@@ -18,39 +18,32 @@ RETRY_STATS_VARS;
  *  - (un)set_marked changes the mark,
  *  - get_(un)marked_ref sets the mark before returning the node.
  */
-inline int
-is_marked_ref(node_t* i) 
-{
-  return ((uintptr_t) i & 0x1L);
+inline int is_marked_ref(node_t* i) {
+    return ((uintptr_t) i & 0x1L);
 }
 
 inline node_t*
-get_unmarked_ref(node_t* w) 
-{
-  return (node_t*) ((uintptr_t) w & ~0x1L);
+get_unmarked_ref(node_t* w) {
+    return (node_t*) ((uintptr_t) w & ~0x1L);
 }
 
 inline node_t*
-get_marked_ref(node_t* w) 
-{
-  return (node_t*) ((uintptr_t) w | 0x1L);
+get_marked_ref(node_t* w) {
+    return (node_t*) ((uintptr_t) w | 0x1L);
 }
 
-static inline int
-physical_delete_right(node_t* left_node, node_t* right_node) 
-{
-  node_t* new_next = get_unmarked_ref(right_node->next);
-  node_t* res = CAS_PTR(&left_node->next, right_node, new_next);
-  int removed = (res == right_node);
+static inline int physical_delete_right(node_t* left_node, node_t* right_node) {
+    node_t* new_next = get_unmarked_ref(right_node->next);
+    node_t* res = CAS_PTR(&left_node->next, right_node, new_next);
+    int removed = (res == right_node);
 #if GC == 1
-  if (likely(removed))
+    if (likely(removed))
     {
-      ssmem_free(alloc, (void*) res);
+        ssmem_free(alloc, (void*) res);
     }
 #endif
-  return removed;
+    return removed;
 }
-
 
 /*
  * list_search looks for value val, it
@@ -60,90 +53,73 @@ physical_delete_right(node_t* left_node, node_t* right_node)
  * Encountered nodes that are marked as logically deleted are physically removed
  * from the list, yet not garbage collected.
  */
-static inline node_t* 
-list_search(intset_t* set, skey_t key, node_t** left_node_ptr) 
-{
-  PARSE_TRY();
-  node_t* left_node = set->head;
-  node_t* right_node = set->head->next;
-  while(1)
-    {
-      if (likely(!is_marked_ref(right_node->next)))
-	{
-	  if (unlikely(right_node->key >= key))
-	    {
-	      break;
-	    }
-	  left_node = right_node;
-	}
-      else 
-	{
-	  CLEANUP_TRY();
-	  physical_delete_right(left_node, right_node);
-	}
-      right_node = get_unmarked_ref(right_node->next);
+static inline node_t*
+list_search(intset_t* set, skey_t key, node_t** left_node_ptr) {
+    PARSE_TRY();
+    node_t* left_node = set->head;
+    node_t* right_node = set->head->next;
+    while (1) {
+        if (likely(!is_marked_ref(right_node->next))) {
+            if (unlikely(right_node->key >= key)) {
+                break;
+            }
+            left_node = right_node;
+        } else {
+            CLEANUP_TRY();
+            physical_delete_right(left_node, right_node);
+        }
+        right_node = get_unmarked_ref(right_node->next);
     }
-  *left_node_ptr = left_node;
-  return right_node;
+    *left_node_ptr = left_node;
+    return right_node;
 }
 
 /*
  * returns a value different from 0 if there is a node in the list owning value val.
  */
-sval_t
-harris_find(intset_t* the_list, skey_t key)
-{
-  node_t* node = the_list->head->next;
-  PARSE_TRY();
-  while(likely(node->key < key))
-    {
-      node = get_unmarked_ref(node->next);
+sval_t harris_find(intset_t* the_list, skey_t key) {
+    node_t* node = the_list->head->next;
+    PARSE_TRY();
+    while (likely(node->key < key)) {
+        node = get_unmarked_ref(node->next);
     }
-  /* node_t* l; */
-  /* node_t* node = list_search(the_list, key, &l); */
+    /* node_t* l; */
+    /* node_t* node = list_search(the_list, key, &l); */
 
-  if (node->key == key && !is_marked_ref(node->next)) 
-    {
-      return node->val;
+    if (node->key == key && !is_marked_ref(node->next)) {
+        return node->val;
     }
-  return 0;
+    return 0;
 }
-
 
 /*
  * inserts a new node with the given value val in the list
  * (if the value was absent) or does nothing (if the value is already present).
  */
-int
-harris_insert(intset_t *the_list, skey_t key, sval_t val)
-{
-  do
-    {
-      UPDATE_TRY();
-      node_t* left_node;
-      node_t* right_node = list_search(the_list, key, &left_node);
-      if (right_node->key == key) 
-	{
-	  return 0;
-	}
+int harris_insert(intset_t *the_list, skey_t key, sval_t val) {
+    do {
+        UPDATE_TRY();
+        node_t* left_node;
+        node_t* right_node = list_search(the_list, key, &left_node);
+        if (right_node->key == key) {
+            return 0;
+        }
 
-      node_t* node_to_add = new_node(key, val, right_node, 0);
+        node_t* node_to_add = new_node(key, val, right_node, 0);
 
 #ifdef __tile__
-      MEM_BARRIER;
+        MEM_BARRIER;
 #endif
-      // Try to swing left_node's unmarked next pointer to a new node
+        // Try to swing left_node's unmarked next pointer to a new node
 
-      if (CAS_PTR(&left_node->next, right_node, node_to_add) == right_node)
-	{
-	  return 1;
-	}
+        if (CAS_PTR(&left_node->next, right_node, node_to_add) == right_node) {
+            return 1;
+        }
 
 #if GC == 1
-      ssmem_free(alloc, (void*) node_to_add);
+        ssmem_free(alloc, (void*) node_to_add);
 #endif
-    } 
-  while (1);
+    } while (1);
 }
 
 /*
@@ -151,51 +127,44 @@ harris_insert(intset_t *the_list, skey_t key, sval_t val)
  * or does nothing (if the value is already present).
  * The deletion is logical and consists of setting the node mark bit to 1.
  */
-sval_t
-harris_delete(intset_t *the_list, skey_t key)
-{
-  node_t* cas_result;
-  node_t* unmarked_ref;
-  node_t* left_node;
-  node_t* right_node;
-  
-  do
-    {
-      UPDATE_TRY();
-      right_node = list_search(the_list, key, &left_node);
+sval_t harris_delete(intset_t *the_list, skey_t key) {
+    node_t* cas_result;
+    node_t* unmarked_ref;
+    node_t* left_node;
+    node_t* right_node;
 
-      if (right_node->key != key)
-	{
-	  return 0;
-	}
-    
-      // Try to mark right_node as logically deleted
-      unmarked_ref = get_unmarked_ref(right_node->next);
-      node_t* marked_ref = get_marked_ref(unmarked_ref);
-      cas_result = CAS_PTR(&right_node->next, unmarked_ref, marked_ref);
-    } 
-  while(cas_result != unmarked_ref);
+    do {
+        UPDATE_TRY();
+        right_node = list_search(the_list, key, &left_node);
 
-  sval_t ret = right_node->val;
+        if (right_node->key != key) {
+            return 0;
+        }
 
-  physical_delete_right(left_node, right_node);
+        // Try to mark right_node as logically deleted
+        unmarked_ref = get_unmarked_ref(right_node->next);
+        node_t* marked_ref = get_marked_ref(unmarked_ref);
+        cas_result = CAS_PTR(&right_node->next, unmarked_ref, marked_ref);
+    } while (cas_result != unmarked_ref);
 
-  return ret;
+    sval_t ret = right_node->val;
+
+    physical_delete_right(left_node, right_node);
+
+    return ret;
 }
 
-int
-set_size(intset_t *set)
-{
-  size_t size = 0;
-  node_t* node;
+int set_size(intset_t *set) {
+    size_t size = 0;
+    node_t* node;
 
-  /* We have at least 2 elements */
-  node = get_unmarked_ref(set->head->next);
-  while (get_unmarked_ref(node->next) != NULL)
-    {
-      if (!is_marked_ref(node->next)) size++;
-      node = get_unmarked_ref(node->next);
+    /* We have at least 2 elements */
+    node = get_unmarked_ref(set->head->next);
+    while (get_unmarked_ref(node->next) != NULL) {
+        if (!is_marked_ref(node->next))
+            size++;
+        node = get_unmarked_ref(node->next);
     }
 
-  return size;
+    return size;
 }
