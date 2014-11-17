@@ -108,7 +108,7 @@ try_again_search:
             physical_delete_right(left_node, right_node);
         }
         // right_node = get_unmarked_ref(right_node->next);
-        right_node = get_unmarked_ref(left_node->next);
+        right_node = get_unmarked_ref(right_node->next);
         
     }
     *left_node_ptr = left_node;

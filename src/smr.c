@@ -140,7 +140,7 @@ void scan()
      *                    B -> POISON      B -> POISON
      */
     //write_barrier();
-     MEM_BARRIER;
+    MEM_BARRIER;
 
     /* Stage 1: Scan HP list and insert non-null values in plist. */
     psize = 0;
