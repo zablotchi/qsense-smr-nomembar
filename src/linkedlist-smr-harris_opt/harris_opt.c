@@ -38,15 +38,11 @@ get_marked_ref(node_t* w) {
 
 static inline int physical_delete_right(node_t* left_node, node_t* right_node) {
     node_t* new_next = get_unmarked_ref(right_node->next);
-    
     node_t* res = CAS_PTR(&left_node->next, right_node, new_next);
-
-    int removed = (res == right_node); // removed=1 if CAS was succesful
-
+    int removed = (res == right_node);
     if (likely(removed)){
         free_node_later((void*) res);
     }
-    
     return removed;
 }
 
@@ -62,41 +58,21 @@ static inline node_t*
 list_search(intset_t* set, skey_t key, node_t** left_node_ptr) {
     PARSE_TRY();
     node_t *left_node, *right_node;
-    size_t base=K*sd.thread_index, offset=0;
+    int base = K * sd.thread_index;
+    int offset = 0;
 
-try_again_search:
-
+try_again_search:    
     left_node = set->head;
-    
-    // HP[base + offset].p = left_node;
-    // MEM_BARRIER;
-    // if (left_node != set->head) {
-    //     goto try_again_search;
-    // }
-    // offset = 1-offset;
-    
     right_node = set->head->next;
-    
-    // HP[base + offset].p = right_node;
-    // MEM_BARRIER;
-    // if (right_node != set->head->next) {
-    //     goto try_again_search;
-    // }
-    // offset = 1-offset;
     
     while (1) {
 
         HP[base + offset].p = right_node;
         MEM_BARRIER;
-        if (right_node != get_unmarked_ref(left_node->next)) {
-            //fprintf(stderr, "Trying again\n");
+        if (right_node != left_node->next) {
             goto try_again_search;
         }
         offset = 1-offset;
-
-        if (right_node->key == 10000) {
-            fprintf(stderr, "[%d] Touched illegal node in search FUUUUUUU: %p\n", sd.thread_index, right_node);
-        }
         
         if (likely(!is_marked_ref(right_node->next))) {
             if (unlikely(right_node->key >= key)) {
@@ -105,13 +81,9 @@ try_again_search:
             left_node = right_node;
         } else {
             CLEANUP_TRY();
-            if (!physical_delete_right(left_node, right_node)) {
-                goto try_again_search;
-            }
+            physical_delete_right(left_node, right_node);
         }
-        // right_node = get_unmarked_ref(right_node->next);
         right_node = get_unmarked_ref(right_node->next);
-        
     }
     *left_node_ptr = left_node;
     return right_node;
