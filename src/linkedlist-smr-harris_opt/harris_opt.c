@@ -119,7 +119,9 @@ try_again_search:
  */
 sval_t harris_find(intset_t* the_list, skey_t key) {
 
-    node_t *left_node, *right_node;
+    return 0;
+
+    /*node_t *left_node, *right_node;
     size_t base=K*sd.thread_index, offset=0;
 
 try_again_find:
@@ -165,7 +167,7 @@ try_again_find:
     if (right_node->key == key && !is_marked_ref(right_node->next)) {
         return right_node->val;
     }
-    return 0;
+    return 0;*/
 }
 
 /*
