@@ -25,7 +25,6 @@
 #include "utils.h"
 #include "measurements.h"
 #include "ssalloc.h"
-#include "ssmem.h"
 
 #ifdef DEBUG
 #define IO_FLUSH                        fflush(NULL)
@@ -51,7 +50,7 @@ typedef volatile struct node {
 
 typedef ALIGNED(CACHE_LINE_SIZE) struct intset {
     node_t *head;
-    uint8_t padding[CACHE_LINE_SIZE - sizeof(node_t *)];
+    uint8_t padding[CACHE_LINE_SIZE - sizeof(node_t*)];
 } intset_t;
 
 node_t *new_node(skey_t key, sval_t val, node_t *next, int initializing);

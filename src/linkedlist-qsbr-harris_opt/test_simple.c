@@ -26,7 +26,7 @@
 #endif
 
 #include "intset.h"
-#include "smr.h"
+#include "qsbr.h"
 
 /* ################################################################### *
  * Definition of macros: per data structure
@@ -136,7 +136,6 @@ test(void* thread) {
 
     seeds = seed_rand();
 
-
     RR_INIT(phys_id);
     barrier_cross(&barrier);
 
@@ -179,8 +178,16 @@ test(void* thread) {
 
     RR_START_SIMPLE();
 
+    int qcount = 0;
+
     while (stop == 0) {
         TEST_LOOP(NULL);
+        qcount++;
+
+        if (qcount == QUIESCENCE_THRESHOLD) {
+            quiescent_state(FUZZY);
+            qcount = 0;
+        }
     }
 
     barrier_cross(&barrier);
@@ -217,10 +224,8 @@ test(void* thread) {
                 }EXEC_IN_DEC_ID_ORDER_END(&barrier);
 
     SSPFDTERM();
-#if GC == 1
-    ssmem_term();
-    free(alloc);
-#endif
+    
+    mr_thread_exit();
 
     pthread_exit(NULL);
 }
@@ -229,9 +234,6 @@ int main(int argc, char **argv) {
     set_cpu(the_cores[0]);
     ssalloc_init();
     seeds = seed_rand();
-
-    printf("size of intset_t: %d\n", sizeof(intset_t));
-    printf("size of node_t: %d\n", sizeof(node_t));
 
     struct option long_options[] = {
             // These options don't set a flag
@@ -380,10 +382,9 @@ int main(int argc, char **argv) {
     timeout.tv_nsec = (duration % 1000) * 1000000;
 
     stop = 0;
-
-    DS_TYPE* set = DS_NEW();
-    mr_init_global(num_threads); 
+    mr_init_global(num_threads);
     
+    DS_TYPE* set = DS_NEW();
     assert(set != NULL);
 
     /* Initializes the local data */
@@ -532,7 +533,7 @@ int main(int argc, char **argv) {
     printf("#txs %zu\t(%-10.0f\n", num_threads, throughput);
     printf("#Mops %.3f\n", throughput / 1e6);
 
-    RR_PRINT_UNPROTECTED(RAPL_PRINT_POW);RR_PRINT_CORRECTED();RETRY_STATS_PRINT(total, putting_count_total, removing_count_total, putting_count_total_succ + removing_count_total_succ);
+    RR_PRINT_UNPROTECTED(RAPL_PRINT_POW); RR_PRINT_CORRECTED(); RETRY_STATS_PRINT(total, putting_count_total, removing_count_total, putting_count_total_succ + removing_count_total_succ);
 
     pthread_exit(NULL);
 

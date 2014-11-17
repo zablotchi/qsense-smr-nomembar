@@ -10,7 +10,6 @@
 
 #include "linkedlist.h"
 
-
 node_t*
 new_node(skey_t key, sval_t val, node_t *next, int initializing) {
     volatile node_t *node;
@@ -34,7 +33,6 @@ set_new() {
     intset_t *set;
     node_t *min, *max;
 
-    // trying memalign instead of ssalloc_aligned
     if ((set = (intset_t*) memalign(CACHE_LINE_SIZE, sizeof(intset_t)))
             == NULL) {
         perror("malloc");
