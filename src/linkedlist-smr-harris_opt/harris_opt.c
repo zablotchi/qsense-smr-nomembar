@@ -98,55 +98,41 @@ try_again_search:
  */
 sval_t harris_find(intset_t* the_list, skey_t key) {
 
-    return 0;
+    node_t *left_node, *right_node;
+    int base = K * sd.thread_index;
+    int offset = 0;
 
-    /*node_t *left_node, *right_node;
-    size_t base=K*sd.thread_index, offset=0;
-
-try_again_find:
-
-    left_node = the_list->head;
-    
-    HP[base + offset].p = left_node;
-    MEM_BARRIER;
-    if (left_node != the_list->head) {
-        goto try_again_find;
-    }
-    offset = 1-offset;
-    
-    right_node = the_list->head->next;
-    
-    HP[base + offset].p = right_node;
-    MEM_BARRIER;
-    if (right_node != the_list->head->next) {
-        goto try_again_find;
-    }
-    offset = 1-offset;
+try_again_search:    
+    left_node = set->head;
+    right_node = set->head->next;
     
     while (1) {
 
-        if (right_node->key == 10000) {
-            fprintf(stderr, "[%d] Touched illegal node in find FUUUUUUU: %p\n", sd.thread_index, right_node);
+        HP[base + offset].p = right_node;
+        MEM_BARRIER;
+        if (right_node != left_node->next) {
+            goto try_again_search;
         }
+        offset = 1-offset;
 
+        if (right_node->key == 10000) {
+            fprintf(stderr, "Touched illegal node in find\n");
+        }
+        
+        
         if (unlikely(right_node->key >= key)) {
             break;
         }
-        left_node = right_node;        
+
+        left_node = right_node;
+
         right_node = get_unmarked_ref(right_node->next);
-        
-        HP[base + offset].p = right_node;
-        MEM_BARRIER;
-        if (right_node != get_unmarked_ref(left_node->next)) {
-            goto try_again_find;
-        }
-        offset = 1-offset;
     }
 
     if (right_node->key == key && !is_marked_ref(right_node->next)) {
         return right_node->val;
     }
-    return 0;*/
+    return 0;
 }
 
 /*
