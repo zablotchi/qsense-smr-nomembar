@@ -69,7 +69,7 @@ try_again_search:
 
         HP[base + offset].p = right_node;
         MEM_BARRIER;
-        if (right_node != left_node->next) {
+        if (right_node != get_unmarked_ref(left_node->next)) {
             goto try_again_search;
         }
         offset = 1-offset;
@@ -77,7 +77,7 @@ try_again_search:
         if (right_node->key == 10000) {
             fprintf(stderr, "Touched illegal node in search\n");
         }
-        
+
         if (likely(!is_marked_ref(right_node->next))) {
             if (unlikely(right_node->key >= key)) {
                 break;
