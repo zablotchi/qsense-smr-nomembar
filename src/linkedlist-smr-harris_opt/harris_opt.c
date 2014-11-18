@@ -103,8 +103,8 @@ sval_t harris_find(intset_t* the_list, skey_t key) {
     int offset = 0;
 
 try_again_search:    
-    left_node = set->head;
-    right_node = set->head->next;
+    left_node = the_list->head;
+    right_node = the_list->head->next;
     
     while (1) {
 
