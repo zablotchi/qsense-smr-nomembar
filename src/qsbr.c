@@ -172,8 +172,8 @@ void process_callbacks(mr_node_t **list)
         next = (*list)->mr_next;
         
         ((node_t *)((*list)->actual_node))->key = 10000;
-        // ssfree_alloc(0, (*list)->actual_node);
-        // ssfree_alloc(1, *list);
+        ssfree_alloc(0, (*list)->actual_node);
+        ssfree_alloc(1, *list);
         num++;
     }
 

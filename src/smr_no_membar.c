@@ -157,8 +157,8 @@ void scan()
             sd.rcount++;
         } else {
             ((node_t *)(cur->actual_node))->key = 10000;
-            // ssfree_alloc(0, cur->actual_node);
-            // ssfree_alloc(1, cur);
+            ssfree_alloc(0, cur->actual_node);
+            ssfree_alloc(1, cur);
         }
     }
 }
