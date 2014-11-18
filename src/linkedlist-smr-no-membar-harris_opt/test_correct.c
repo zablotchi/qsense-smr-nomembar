@@ -17,37 +17,31 @@
 #include <unistd.h>
 #include <malloc.h>
 #include "utils.h"
-#include "common.h"
 #include "atomic_ops.h"
-#include "rapl_read.h"
 #ifdef __sparc__
 #  include <sys/types.h>
 #  include <sys/processor.h>
 #  include <sys/procset.h>
 #endif
 
-#include "list.h"
-#include "node.h"
-#include "smr.h"
+#include "intset.h"
 
 /* ################################################################### *
  * Definition of macros: per data structure
  * ################################################################### */
 
-#define DS_CONTAINS(s,k,t)  search(s, k)
-#define DS_ADD(s,k,t)       insert(s, k)
-#define DS_REMOVE(s,k,t)    delete(s, k)
-#define DS_SIZE(s)          size(s)
-// #define DS_NEW()            set_new()
+#define DS_CONTAINS(s,k)  set_contains(s, k)
+#define DS_ADD(s,k,v)     set_add(s, k, (sval_t) v)
+#define DS_REMOVE(s,k)    set_remove(s, k)
+#define DS_SIZE(s)        set_size(s)
+#define DS_NEW()          set_new()
 
-#define DS_TYPE             struct list
-#define DS_NODE             node_t
+#define DS_TYPE           intset_t
+#define DS_NODE           node_t
 
 /* ################################################################### *
  * GLOBALS
  * ################################################################### */
-
-RETRY_STATS_VARS_GLOBAL;
 
 size_t initial = DEFAULT_INITIAL;
 size_t range = DEFAULT_RANGE;
@@ -68,14 +62,7 @@ uint32_t rand_max;
 #define rand_min 1
 
 static volatile int stop;
-static volatile int wakeup_stop;
-
-static uint8_t has_sleeper_thread[NUMBER_OF_SOCKETS * CORES_PER_SOCKET];
-extern uint64_t memory_reuse;
-extern uint64_t freed_nodes;
-
-TEST_VARS_GLOBAL
-;
+__thread uint32_t phys_id;
 
 volatile ticks *putting_succ;
 volatile ticks *putting_fail;
@@ -104,18 +91,17 @@ extern __thread uint32_t put_num_failed_on_new;
 barrier_t barrier, barrier_global;
 
 typedef struct thread_data {
-    uint32_t id;
+    uint8_t id;
     DS_TYPE* set;
 } thread_data_t;
 
 void*
 test(void* thread) {
     thread_data_t* td = (thread_data_t*) thread;
-    uint32_t ID = td->id;
-    int phys_id = the_cores[ID];
+    uint8_t ID = td->id;
+    phys_id = the_cores[ID];
     set_cpu(phys_id);
     ssalloc_init();
-    mr_init_local(ID, num_threads);
 
     DS_TYPE* set = td->set;
 
@@ -146,13 +132,14 @@ test(void* thread) {
 #if GC == 1
     alloc = (ssmem_allocator_t*) malloc(sizeof(ssmem_allocator_t));
     assert(alloc != NULL);
-    ssmem_alloc_init_fs_size(alloc, SSMEM_DEFAULT_MEM_SIZE, SSMEM_GC_FREE_SET_SIZE, ID);
+    ssmem_alloc_init(alloc, SSMEM_DEFAULT_MEM_SIZE, ID);
+    ssmem_allocator_t* alloc_data = (ssmem_allocator_t*) malloc(sizeof(ssmem_allocator_t));
+    assert(alloc_data != NULL);
+    ssmem_alloc_init(alloc_data, SSMEM_DEFAULT_MEM_SIZE, ID);
 #endif
 
-    RR_INIT(phys_id);
-    barrier_cross(&barrier);
-
     uint64_t key;
+    size_t* val = NULL;
     int c = 0;
     uint32_t scale_rem = (uint32_t)(update_rate * UINT_MAX);
     uint32_t scale_put = (uint32_t)(put_rate * UINT_MAX);
@@ -166,15 +153,22 @@ test(void* thread) {
 
 #if INITIALIZE_FROM_ONE == 1
     num_elems_thread = (ID == 0) * initial;
-    key = range;
 #endif
 
     for (i = 0; i < num_elems_thread; i++) {
         key =
                 (my_random(&(seeds[0]), &(seeds[1]), &(seeds[2]))
                         % (rand_max + 1)) + rand_min;
-        if (DS_ADD(set, key, NULL) == false) {
+
+        if (val == NULL) {
+            val = (size_t*) ssmem_alloc(alloc_data, sizeof(size_t));
+        }
+        val[0] = key;
+
+        if (DS_ADD(set, key, val) == false) {
             i--;
+        } else {
+            val = NULL;
         }
     }
     MEM_BARRIER;
@@ -185,18 +179,61 @@ test(void* thread) {
         printf("#BEFORE size is: %zu\n", (size_t) DS_SIZE(set));
     }
 
-    RETRY_STATS_ZERO();
-
     barrier_cross(&barrier_global);
 
-    RR_START_SIMPLE();
-
     while (stop == 0) {
-        TEST_LOOP(NULL);
+        c = (uint32_t)(my_random(&(seeds[0]), &(seeds[1]), &(seeds[2])));
+        key = (c & rand_max) + rand_min;
+
+        if (unlikely(c <= scale_put)) {
+            if (val == NULL) {
+                val = (size_t*) ssmem_alloc(alloc_data, sizeof(size_t));
+            }
+            val[0] = key;
+
+            int res;
+            START_TS(1);
+            res = DS_ADD(set, key, val);
+            END_TS(1, my_putting_count);
+            if (res) {
+                ADD_DUR(my_putting_succ);
+                my_putting_count_succ++;
+                val = NULL;
+            } ADD_DUR_FAIL(my_putting_fail);
+            my_putting_count++;
+        } else if (unlikely(c <= scale_rem)) {
+            size_t* removed;
+            START_TS(2);
+            removed = (size_t*) DS_REMOVE(set, key);
+            END_TS(2, my_removing_count);
+            if (removed != NULL) {
+                ADD_DUR(my_removing_succ);
+                my_removing_count_succ++;
+                if (removed[0] != key) {
+                    printf(" *[REM]* WRONG for key: %-10lu : %-10lu @ %p\n",
+                            key, removed[0], removed);
+                }
+                ssmem_free(alloc_data, removed);
+            } ADD_DUR_FAIL(my_removing_fail);
+            my_removing_count++;
+        } else {
+            size_t* res;
+            START_TS(0);
+            res = (size_t*) DS_CONTAINS(set, key);
+            END_TS(0, my_getting_count);
+            if (res != NULL) {
+                ADD_DUR(my_getting_succ);
+                my_getting_count_succ++;
+                if (res[0] != key) {
+                    printf(" *[GET]* WRONG for key: %-10lu : %-10lu @ %p\n",
+                            key, res[0], res);
+                }
+            } ADD_DUR_FAIL(my_getting_fail);
+            my_getting_count++;
+        }
     }
 
     barrier_cross(&barrier);
-    RR_STOP_SIMPLE();
 
     if (!ID) {
         size_after = DS_SIZE(set);
@@ -224,38 +261,14 @@ test(void* thread) {
     EXEC_IN_DEC_ID_ORDER(ID, num_threads)
                 {
                     print_latency_stats(ID, SSPFD_NUM_ENTRIES, print_vals_num);
-                    /* retry stats */
-                    RETRY_STATS_SHARE();
                 }EXEC_IN_DEC_ID_ORDER_END(&barrier);
 
     SSPFDTERM();
 #if GC == 1
     ssmem_term();
     free(alloc);
+    free(alloc_data);
 #endif
-    mr_thread_exit();
-    pthread_exit(NULL);
-}
-
-typedef struct sleeper_thread_data {
-    uint32_t target_core;
-    uint32_t sleep_millis;
-} sleeper_thread_data_t;
-
-void* wakeup(void * arg) {
-
-    sleeper_thread_data_t* sthd = (sleeper_thread_data_t*) arg;
-    uint32_t core = sthd->target_core;
-    int phys_id = the_cores[core];
-    set_cpu(phys_id);
-
-    struct timespec timeout;
-    timeout.tv_sec = sthd->sleep_millis / 1000;
-    timeout.tv_nsec = (sthd->sleep_millis % 1000) * 1000000;
-
-    while (wakeup_stop == 0) {
-        nanosleep(&timeout, NULL);
-    }
 
     pthread_exit(NULL);
 }
@@ -370,6 +383,7 @@ int main(int argc, char **argv) {
         range = 2 * initial;
     }
 
+    printf("## Test correctness \n");
     printf("## Initial: %zu / Range: %zu\n", initial, range);
 
     double kb = initial * sizeof(DS_NODE) / 1024.0;
@@ -412,13 +426,8 @@ int main(int argc, char **argv) {
     timeout.tv_nsec = (duration % 1000) * 1000000;
 
     stop = 0;
-    wakeup_stop = 0;
 
-    // DS_TYPE* set = DS_NEW();
-    mr_init_global(num_threads);
-    DS_TYPE* set;
-    list_init(&set);
-
+    DS_TYPE* set = DS_NEW();
     assert(set != NULL);
 
     /* Initializes the local data */
@@ -435,50 +444,25 @@ int main(int argc, char **argv) {
     removing_count = (ticks *) calloc(num_threads, sizeof(ticks));
     removing_count_succ = (ticks *) calloc(num_threads, sizeof(ticks));
 
-    // Create sleeper threads, one per core
-    size_t num_cores = CORES_PER_SOCKET * NUMBER_OF_SOCKETS;
-    pthread_t sleeper_threads[num_cores];
-    sleeper_thread_data_t* slthds = (sleeper_thread_data_t *) malloc(
-            num_cores * sizeof(sleeper_thread_data_t));
-
-    /* Initialize and set thread detached attribute */
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-
-    // Initially, no core has a sleeper on it
-    long t;
-    for (t = 0; t < num_cores; t++) {
-        has_sleeper_thread[t] = 0;
-    }
-
     pthread_t threads[num_threads];
+    pthread_attr_t attr;
     int rc;
     void *status;
 
     barrier_init(&barrier_global, num_threads + 1);
     barrier_init(&barrier, num_threads);
 
+    /* Initialize and set thread detached attribute */
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
     thread_data_t* tds = (thread_data_t*) malloc(
             num_threads * sizeof(thread_data_t));
 
+    long t;
     for (t = 0; t < num_threads; t++) {
         tds[t].id = t;
         tds[t].set = set;
-
-        if (!has_sleeper_thread[t % num_cores]) {
-            has_sleeper_thread[t % num_cores] = 1;
-
-            // create sleeper thread
-            slthds[t].target_core = t;
-            slthds[t].sleep_millis = SLEEP_AMOUNT;
-            if (pthread_create(&sleeper_threads[t % num_cores], &attr, wakeup,
-                    slthds + (t % num_cores))) {
-                printf("ERROR; return code from pthread_create() is %d\n", rc);
-                exit(-1);
-            }
-        }
-
         rc = pthread_create(&threads[t], &attr, test, tds + t);
         if (rc) {
             printf("ERROR; return code from pthread_create() is %d\n", rc);
@@ -507,19 +491,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    // join sleeper threads here
-    wakeup_stop = 1;
-    for (t = 0; t < num_cores; t++) {
-        if (has_sleeper_thread[t]
-                && pthread_join(sleeper_threads[t], &status)) {
-
-            printf("ERROR; return code from pthread_join() is %d\n", rc);
-            exit(-1);
-        }
-    }
-
     free(tds);
-    free(slthds);
 
     volatile ticks putting_suc_total = 0;
     volatile ticks putting_fal_total = 0;
@@ -603,10 +575,6 @@ int main(int argc, char **argv) {
             + removing_count_total) * 1000.0 / duration;
     printf("#txs %zu\t(%-10.0f\n", num_threads, throughput);
     printf("#Mops %.3f\n", throughput / 1e6);
-    printf("#Reused nodes %d\n", memory_reuse);
-    printf("#Freed nodes %d\n", freed_nodes);
-
-    RR_PRINT_UNPROTECTED(RAPL_PRINT_POW); RR_PRINT_CORRECTED(); RETRY_STATS_PRINT(total, putting_count_total, removing_count_total, putting_count_total_succ + removing_count_total_succ);
 
     pthread_exit(NULL);
 

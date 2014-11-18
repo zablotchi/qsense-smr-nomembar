@@ -22,7 +22,7 @@
 // #include "util.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "linkedlist-smr-no-membar/node.h"
+#include "linkedlist-smr-no-membar-harris_opt/linkedlist.h"
 
 // IGOR: SSALLOC allocator convention:
 // 0 is for actual nodes
@@ -156,16 +156,15 @@ void scan()
             sd.rlist = cur;
             sd.rcount++;
         } else {
-            ((node_t *)(cur->actual_node))->key = 10000 + sd.thread_index;
-            ssfree_alloc(0, cur->actual_node);
-            ssfree_alloc(1, cur);
+            ((node_t *)(cur->actual_node))->key = 10000;
+            // ssfree_alloc(0, cur->actual_node);
+            // ssfree_alloc(1, cur);
         }
     }
 }
 
 void free_node_later(void *n)
 {
-    // OANA IGOR add timestamp around here
     mr_node_t* wrapper_node = ssalloc_alloc(1, sizeof(mr_node_t));
     wrapper_node->actual_node = n;
     // Create timestamp in mr node

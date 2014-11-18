@@ -17,7 +17,6 @@
 #include <unistd.h>
 #include <malloc.h>
 #include "utils.h"
-#include "common.h"
 #include "atomic_ops.h"
 #include "rapl_read.h"
 #ifdef __sparc__
@@ -26,21 +25,20 @@
 #  include <sys/procset.h>
 #endif
 
-#include "list.h"
-#include "node.h"
+#include "intset.h"
 #include "smr.h"
 
 /* ################################################################### *
  * Definition of macros: per data structure
  * ################################################################### */
 
-#define DS_CONTAINS(s,k,t)  search(s, k)
-#define DS_ADD(s,k,t)       insert(s, k)
-#define DS_REMOVE(s,k,t)    delete(s, k)
-#define DS_SIZE(s)          size(s)
-// #define DS_NEW()            set_new()
+#define DS_CONTAINS(s,k,t)  set_contains(s, k)
+#define DS_ADD(s,k,t)       set_add(s, k, k)
+#define DS_REMOVE(s,k,t)    set_remove(s, k)
+#define DS_SIZE(s)          set_size(s)
+#define DS_NEW()            set_new()
 
-#define DS_TYPE             struct list
+#define DS_TYPE             intset_t
 #define DS_NODE             node_t
 
 /* ################################################################### *
@@ -143,11 +141,6 @@ test(void* thread) {
 #endif
 
     seeds = seed_rand();
-#if GC == 1
-    alloc = (ssmem_allocator_t*) malloc(sizeof(ssmem_allocator_t));
-    assert(alloc != NULL);
-    ssmem_alloc_init_fs_size(alloc, SSMEM_DEFAULT_MEM_SIZE, SSMEM_GC_FREE_SET_SIZE, ID);
-#endif
 
     RR_INIT(phys_id);
     barrier_cross(&barrier);
@@ -229,10 +222,7 @@ test(void* thread) {
                 }EXEC_IN_DEC_ID_ORDER_END(&barrier);
 
     SSPFDTERM();
-#if GC == 1
-    ssmem_term();
-    free(alloc);
-#endif
+
     mr_thread_exit();
     pthread_exit(NULL);
 }
@@ -259,6 +249,7 @@ void* wakeup(void * arg) {
 
     pthread_exit(NULL);
 }
+
 
 int main(int argc, char **argv) {
     set_cpu(the_cores[0]);
@@ -414,10 +405,9 @@ int main(int argc, char **argv) {
     stop = 0;
     wakeup_stop = 0;
 
-    // DS_TYPE* set = DS_NEW();
+
+    DS_TYPE* set = DS_NEW();
     mr_init_global(num_threads);
-    DS_TYPE* set;
-    list_init(&set);
 
     assert(set != NULL);
 
@@ -603,10 +593,8 @@ int main(int argc, char **argv) {
             + removing_count_total) * 1000.0 / duration;
     printf("#txs %zu\t(%-10.0f\n", num_threads, throughput);
     printf("#Mops %.3f\n", throughput / 1e6);
-    printf("#Reused nodes %d\n", memory_reuse);
-    printf("#Freed nodes %d\n", freed_nodes);
 
-    RR_PRINT_UNPROTECTED(RAPL_PRINT_POW); RR_PRINT_CORRECTED(); RETRY_STATS_PRINT(total, putting_count_total, removing_count_total, putting_count_total_succ + removing_count_total_succ);
+    RR_PRINT_UNPROTECTED(RAPL_PRINT_POW);RR_PRINT_CORRECTED();RETRY_STATS_PRINT(total, putting_count_total, removing_count_total, putting_count_total_succ + removing_count_total_succ);
 
     pthread_exit(NULL);
 
