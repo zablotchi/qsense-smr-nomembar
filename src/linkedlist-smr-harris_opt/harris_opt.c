@@ -86,6 +86,7 @@ try_again_search:
         } else {
             CLEANUP_TRY();
             physical_delete_right(left_node, right_node);
+            offset = 1-offset;
         }
         right_node = get_unmarked_ref(right_node->next);
     }
