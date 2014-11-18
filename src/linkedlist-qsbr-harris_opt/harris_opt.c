@@ -60,6 +60,9 @@ list_search(intset_t* set, skey_t key, node_t** left_node_ptr) {
     node_t* left_node = set->head;
     node_t* right_node = set->head->next;
     while (1) {
+        if (right_node->key == 10000) {
+            printf("touched illegal node in search\n");
+        }
         if (likely(!is_marked_ref(right_node->next))) {
             if (unlikely(right_node->key >= key)) {
                 break;
@@ -79,10 +82,19 @@ list_search(intset_t* set, skey_t key, node_t** left_node_ptr) {
  * returns a value different from 0 if there is a node in the list owning value val.
  */
 sval_t harris_find(intset_t* the_list, skey_t key) {
+ 
     node_t* node = the_list->head->next;
     PARSE_TRY();
+    if (node->key == 10000) {
+            printf("touched illegal node in find\n");
+    }
+
     while (likely(node->key < key)) {
         node = get_unmarked_ref(node->next);
+        
+        if (node->key == 10000) {
+            printf("touched illegal node in find\n");
+        }
     }
     /* node_t* l; */
     /* node_t* node = list_search(the_list, key, &l); */
@@ -108,9 +120,6 @@ int harris_insert(intset_t *the_list, skey_t key, sval_t val) {
 
         node_t* node_to_add = new_node(key, val, right_node, 0);
 
-#ifdef __tile__
-        MEM_BARRIER;
-#endif
         // Try to swing left_node's unmarked next pointer to a new node
 
         if (CAS_PTR(&left_node->next, right_node, node_to_add) == right_node) {

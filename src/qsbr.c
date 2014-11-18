@@ -198,11 +198,11 @@ void quiescent_state (int blocking)
     epoch = qg->global_epoch;
     if (t->epoch != epoch) { /* New epoch. */
         /* Process callbacks for old 'incarnation' of this epoch. */
-        printf("[%d] new epoch\n", qad.thread_index);
+        //printf("[%d] new epoch\n", qad.thread_index);
         process_callbacks(&(t->limbo_list[epoch]));
         t->epoch = epoch;
     } else {
-        printf("[%d] old epoch\n", qad.thread_index);
+        //printf("[%d] old epoch\n", qad.thread_index);
         orig = t->in_critical;
         t->in_critical = 0;
         int res = update_epoch();
