@@ -28,8 +28,7 @@
 
 #define N_EPOCHS 3
 
-//#define QUIESCENCE_THRESHOLD 100
-#define QUIESCENCE_THRESHOLD 100000
+#define QUIESCENCE_THRESHOLD 1000
 
 void quiescent_state (int flag);
 

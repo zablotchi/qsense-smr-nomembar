@@ -9,7 +9,7 @@
 #define NOT_FUZZY 1
 
 #define N_EPOCHS 3
-#define QUIESCENCE_THRESHOLD 100
+#define QUIESCENCE_THRESHOLD 1000
 
 // How many milliseconds should the sleeper threads sleep
 #define SLEEP_AMOUNT 150
@@ -60,6 +60,9 @@ struct shared_thread_data {
     mr_node_t *limbo_list [N_EPOCHS];
     int epoch;
     int in_critical;
+    uint64_t process_callbacks_count;
+    uint64_t scan_count;
+
     char padding[CACHE_LINE_SIZE - 2 * sizeof(int) - N_EPOCHS * sizeof(mr_node_t*)];
 };
 
@@ -69,7 +72,8 @@ struct local_thread_data {
   uint64_t rcount;
   uint64_t nthreads;
   uint64_t thread_index;
-  char padding[CACHE_LINE_SIZE - 3*sizeof(uint64_t) - sizeof(void **)];
+
+  char padding[CACHE_LINE_SIZE - 5*sizeof(uint64_t) - sizeof(void **)];
 };
 
 typedef ALIGNED(CACHE_LINE_SIZE) struct shared_thread_data shared_thread_data_t;

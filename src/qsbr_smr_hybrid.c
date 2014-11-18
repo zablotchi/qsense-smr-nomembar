@@ -6,7 +6,7 @@
 #include "atomic_ops_if.h"
 #include "utils.h"
 #include "lock_if.h"
-#include "linkedlist-qsbr-smr-hybrid/node.h"
+#include "linkedlist-qsbr-smr-hybrid/linkedlist.h"
 
 
 struct qsbr_globals *qg ALIGNED(CACHE_LINE_SIZE);
@@ -39,6 +39,8 @@ void mr_init_global(uint64_t nthreads) {
     for (i = 0; i < nthreads; i++) {
         shtd[i].epoch = 0;
         shtd[i].in_critical = 1;
+        shtd[i].process_callbacks_count = 0;
+        shtd[i].scan_count = 0;
         for (j = 0; j < N_EPOCHS; j++)
             shtd[i].limbo_list[j] = NULL;
     }
@@ -56,6 +58,8 @@ void mr_init_global(uint64_t nthreads) {
 void mr_thread_exit()
 {
     // Hazard pointer-style exit every time just to be safe
+    // IGOR OANA if we end up having rooster threads only in case of fallback mode
+    // will it not be a problem to use HP style exit?
     int i;
     
     for (i = 0; i < K; i++)
@@ -114,6 +118,7 @@ void process_callbacks(mr_node_t **list)
 {
     mr_node_t *next;
     uint64_t num = 0;
+    shtd[ltd.thread_index].process_callbacks_count++;
     
     // write_barrier(); // IGOR why you do this?
     MEM_BARRIER;
@@ -192,6 +197,7 @@ void free_node_later (void *q)
     ltd.rcount++;
 
     if (fallback.flag == 1 && ltd.rcount >= R) {
+
         scan();
     }
 }
@@ -199,10 +205,14 @@ void free_node_later (void *q)
 // Hazard Pointers Specific
 void scan()
 {
+
+
     /* Iteratation variables. */
     mr_node_t *cur;
     int i,j;
     uint64_t my_index = ltd.thread_index;
+
+    shtd[my_index].scan_count++;
 
     /* List of SMR callbacks. */
     mr_node_t *tmplist;
@@ -244,8 +254,7 @@ void scan()
             cur = tmplist;
             tmplist = tmplist->mr_next;
 
-            // if (!is_old_enough(cur) || bsearch(&cur, plist, psize, sizeof(mr_node_t *), compare)) {
-            if (ssearch(plist, psize, cur->actual_node)) {
+            if (!is_old_enough(cur) || ssearch(plist, psize, cur->actual_node)) {
                 //cur->mr_next = this_thread()->rlist;
                 //this_thread()->rlist = cur;
 

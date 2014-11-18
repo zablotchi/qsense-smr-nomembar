@@ -2,14 +2,14 @@ ROOT = ../..
 
 include $(ROOT)/common/Makefile.common
 
-BINS = $(BINDIR)/lf-ll_hybrid
+BINS = $(BINDIR)/lf-ll_hybrid_harris_opt
 PROF = $(ROOT)/src
 
 .PHONY:	all clean
 
 all:	main
 
-LIST_IMPL = harris
+LIST_IMPL = harris_opt
 
 measurements.o:
 	$(CC) $(CFLAGS) -c -o $(BUILDIR)/measurements.o $(PROF)/measurements.c
@@ -20,17 +20,20 @@ ssalloc.o:
 qsbr_smr_hybrid.o:
 	$(CC) $(CFLAGS) -c -o $(BUILDIR)/qsbr_smr_hybrid.o $(PROF)/qsbr_smr_hybrid.c
 
-htlock.o:
-	$(CC) $(CFLAGS) -c -o $(BUILDIR)/htlock.o $(PROF)/htlock.c
+linkedlist.o: 
+	$(CC) $(CFLAGS) -c -o $(BUILDIR)/linkedlist.o linkedlist.c
 
-list.o: list.h node.h qsbr_smr_hybrid.o htlock.o
-	$(CC) $(CFLAGS) -c -o $(BUILDIR)/list.o list_hybrid.c
+harris.o: linkedlist.h linkedlist.o
+	$(CC) $(CFLAGS) -c -o $(BUILDIR)/harris.o $(LIST_IMPL).c
 
-test.o: list.h 
+intset.o: linkedlist.h harris.h
+	$(CC) $(CFLAGS) -c -o $(BUILDIR)/intset.o intset.c
+
+test.o: linkedlist.h harris.h intset.h
 	$(CC) $(CFLAGS) -c -o $(BUILDIR)/test.o $(TEST_FILE)
 
-main: measurements.o ssalloc.o qsbr_smr_hybrid.o list.o test.o htlock.o $(TMILB)
-	$(CC) $(CFLAGS) $(BUILDIR)/measurements.o $(BUILDIR)/ssalloc.o $(BUILDIR)/qsbr_smr_hybrid.o $(BUILDIR)/list.o $(BUILDIR)/htlock.o $(BUILDIR)/test.o -o $(BINS) $(LDFLAGS)
+main: measurements.o ssalloc.o linkedlist.o harris.o harris.o intset.o test.o qsbr_smr_hybrid.o $(TMILB)
+	$(CC) $(CFLAGS) $(BUILDIR)/measurements.o $(BUILDIR)/ssalloc.o $(BUILDIR)/linkedlist.o $(BUILDIR)/harris.o $(BUILDIR)/intset.o $(BUILDIR)/test.o $(BUILDIR)/qsbr_smr_hybrid.o -o $(BINS) $(LDFLAGS)
 
 clean:
 	-rm -f $(BINS)
