@@ -68,9 +68,9 @@ ssalloc_alloc(unsigned int allocator, size_t size) {
         memory_reuse++;
     } else {
         if (alloc_next[allocator] + size > SSALLOC_SIZE) {
-          fprintf(stderr,
-                    "*** warning: allocator %2d : CANNOT ALLOCATE SHUT DOWN EVERYTHING\n",
-                    allocator);
+          // fprintf(stderr,
+          //           "*** warning: allocator %2d : CANNOT ALLOCATE SHUT DOWN EVERYTHING\n",
+          //           allocator);
           return NULL;
         }
         ret = (void*) (ssalloc_app_mem[allocator] + alloc_next[allocator]);
