@@ -225,7 +225,7 @@ test(void* thread) {
 
     SSPFDTERM();
     
-    mr_thread_exit();
+    // mr_thread_exit();
 
     pthread_exit(NULL);
 }
