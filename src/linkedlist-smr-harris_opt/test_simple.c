@@ -183,6 +183,8 @@ test(void* thread) {
         TEST_LOOP(NULL);
     }
 
+    mr_thread_exit();
+
     barrier_cross(&barrier);
     RR_STOP_SIMPLE();
 
