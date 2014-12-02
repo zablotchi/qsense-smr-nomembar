@@ -238,6 +238,11 @@ void free_node_later (void *q)
 
     //Use allocator 0 for regular nodes and allocator 1 for mr_nodes
     mr_node_t* wrapper_node = ssalloc_alloc(1, sizeof(mr_node_t));
+    
+    while (wrapper_node == NULL) {
+        quiescent_state(NOT_FUZZY);
+        wrapper_node = ssalloc_alloc(1, sizeof(mr_node_t));
+    }
     wrapper_node->actual_node = q;
 
     wrapper_node->mr_next = t->limbo_list[t->epoch];
