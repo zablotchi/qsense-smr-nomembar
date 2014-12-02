@@ -189,6 +189,7 @@ test(void* thread) {
             qcount = 0;
         }
     }
+    mr_thread_exit();
 
     barrier_cross(&barrier);
     RR_STOP_SIMPLE();
@@ -225,7 +226,6 @@ test(void* thread) {
 
     SSPFDTERM();
     
-    // mr_thread_exit();
 
     pthread_exit(NULL);
 }
