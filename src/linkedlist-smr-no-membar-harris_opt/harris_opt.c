@@ -41,7 +41,7 @@ static inline int physical_delete_right(node_t* left_node, node_t* right_node) {
     node_t* res = CAS_PTR(&left_node->next, right_node, new_next);
     int removed = (res == right_node);
     if (likely(removed)){
-        free_node_later((void*) res);
+        // free_node_later((void*) res);
     }
     return removed;
 }
@@ -67,11 +67,11 @@ try_again_search:
     
     while (1) {
 
-        HP[base + offset].p = right_node;
-        if (right_node != left_node->next) {
-            goto try_again_search;
-        }
-        offset = 1-offset;
+        // HP[base + offset].p = right_node;
+        // if (right_node != left_node->next) {
+        //     goto try_again_search;
+        // }
+        // offset = 1-offset;
 
         if (right_node->key == 10000) {
             fprintf(stderr, "Touched illegal node in search\n");
@@ -107,11 +107,11 @@ try_again_search:
     
     while (1) {
 
-        HP[base + offset].p = right_node;
-        if (right_node != left_node->next) {
-            goto try_again_search;
-        }
-        offset = 1-offset;
+        // HP[base + offset].p = right_node;
+        // if (right_node != left_node->next) {
+        //     goto try_again_search;
+        // }
+        // offset = 1-offset;
 
         if (right_node->key == 10000) {
             fprintf(stderr, "Touched illegal node in find\n");
