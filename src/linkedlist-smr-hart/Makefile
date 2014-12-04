@@ -17,6 +17,9 @@ measurements.o:
 ssalloc.o:
 	$(CC) $(CFLAGS) -c -o $(BUILDIR)/ssalloc.o $(PROF)/ssalloc.c
 
+double_llist.o:
+	$(CC) $(CFLAGS) -c -o $(BUILDIR)/double_llist.o $(PROF)/double_llist.c
+
 smr.o:
 	$(CC) $(CFLAGS) -c -o $(BUILDIR)/smr.o $(PROF)/smr.c
 
@@ -35,8 +38,8 @@ list.o: list.h node.h smr.o
 test.o: list.h 
 	$(CC) $(CFLAGS) -c -o $(BUILDIR)/test.o $(TEST_FILE)
 
-main: measurements.o ssalloc.o smr.o list.o test.o $(TMILB)
-	$(CC) $(CFLAGS) $(BUILDIR)/measurements.o $(BUILDIR)/ssalloc.o $(BUILDIR)/smr.o $(BUILDIR)/list.o $(BUILDIR)/test.o -o $(BINS) $(LDFLAGS)
+main: measurements.o ssalloc.o double_llist.o smr.o list.o test.o $(TMILB)
+	$(CC) $(CFLAGS) $(BUILDIR)/measurements.o $(BUILDIR)/ssalloc.o $(BUILDIR)/double_llist.o $(BUILDIR)/smr.o $(BUILDIR)/list.o $(BUILDIR)/test.o -o $(BINS) $(LDFLAGS)
 
 clean:
 	-rm -f $(BINS)

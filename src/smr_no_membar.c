@@ -48,7 +48,10 @@ void mr_init_global(uint64_t nthreads){
 }
 
 void mr_init_local(uint64_t thread_index, uint64_t nthreads){
-  sd.rlist = NULL;
+  
+  sd.rlist = (double_llist_t*) malloc(sizeof(double_llist_t));
+  init(sd.rlist);
+
   sd.rcount = 0;
   sd.thread_index = thread_index;
   sd.nthreads = nthreads;
@@ -143,8 +146,8 @@ void scan()
     //qsort(plist, psize, sizeof(void *), compare);
 
     /* Stage 3: Free non-harzardous nodes. */
-    tmplist = sd.rlist;
-    sd.rlist = NULL;
+    tmplist = sd.rlist->head;
+    sd.rlist->head = NULL;
     sd.rcount = 0;
     while (tmplist != NULL) {
         /* Pop cur off top of tmplist. */
@@ -152,8 +155,8 @@ void scan()
         tmplist = tmplist->mr_next;
         /*OANA here, bsearch was used, with the compar function*/
         if (!is_old_enough(cur) || ssearch(plist, psize, cur->actual_node)) {
-            cur->mr_next = sd.rlist;
-            sd.rlist = cur;
+            cur->mr_next = sd.rlist->head;
+            sd.rlist->head = cur;
             sd.rcount++;
         } else {
             ((node_t *)(cur->actual_node))->key = 10000;
@@ -170,8 +173,8 @@ void free_node_later(void *n)
     // Create timestamp in mr node
     gettimeofday(&(wrapper_node->created), NULL);
 
-    wrapper_node->mr_next = sd.rlist;
-    sd.rlist = wrapper_node;
+    wrapper_node->mr_next = sd.rlist->head;
+    sd.rlist->head = wrapper_node;
     sd.rcount++;
 
     if (sd.rcount >= R) {
