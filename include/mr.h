@@ -18,8 +18,9 @@ void mr_reinitialize();
 struct mr_node {
     void *actual_node;
     struct timeval created; 
+    struct mr_node *mr_prev;
     struct mr_node *mr_next;
-    char padding[CACHE_LINE_SIZE - sizeof(void *) - sizeof(struct timeval) - sizeof(struct mr_node*)];
+    char padding[CACHE_LINE_SIZE - sizeof(void *) - sizeof(struct timeval) - 2*sizeof(struct mr_node*)];
 };
 
 typedef ALIGNED(CACHE_LINE_SIZE) struct mr_node mr_node_t;
