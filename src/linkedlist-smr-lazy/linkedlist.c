@@ -26,6 +26,7 @@ new_node(skey_t key, sval_t val, node_t *next, int initializing) {
     node->key = key;
     node->val = val;
     node->next = next;
+    node->marked = 0;
     return (node_t*) node;
 }
 

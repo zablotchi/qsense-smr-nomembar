@@ -32,6 +32,7 @@ __thread smr_data_t sd;
 __thread uint64_t HP_cur;
 
 uint8_t is_old_enough(mr_node_t* n);
+void rotation();
 
 void mr_init_global(uint64_t nthreads){
   /* Allocate HP array. Over-allocate since the parent has pid 32. */
@@ -49,8 +50,8 @@ void mr_init_global(uint64_t nthreads){
 }
 
 void mr_init_local(uint64_t thread_index, uint64_t nthreads){
-  sd.rlist = (double_llist_t) malloc(sizeof(double_llist_t*));
-  sd.vlist = (double_llist_t) malloc(sizeof(double_llist_t*));
+  sd.rlist = (double_llist_t*) malloc(sizeof(double_llist_t));
+  sd.vlist = (double_llist_t*) malloc(sizeof(double_llist_t));
 
   init(sd.rlist);
   init(sd.vlist);
@@ -66,6 +67,13 @@ void mr_init_local(uint64_t thread_index, uint64_t nthreads){
 
 void mr_thread_exit()
 {
+    //Move everything from vlist to rlist and then proceed as before, with scans
+    while (sd.vlist->size > 0){
+        mr_node_t* cur = remove_from_tail(sd.vlist);
+        add_to_head(sd.rlist, cur);
+    }
+
+
     int i;
     
     for (i = 0; i < K; i++)
@@ -140,7 +148,7 @@ void scan()
     /* Stage 1: Scan HP list and insert non-null values in plist. */
     psize = 0;
     for (i = 0; i < H; i++) {
-      if (HP[i].p != NULL){
+      if (HP[i].p != NULL) {
         plist[psize] = HP[i].p;
         psize++;
       }
@@ -152,7 +160,7 @@ void scan()
     //qsort(plist, psize, sizeof(void *), compare);
 
     /* Stage 3: Free non-harzardous nodes. */
-    tmplist = sd.rlist;
+    tmplist = sd.rlist->head;
     sd.rlist = NULL;
     sd.rcount = 0;
     while (tmplist != NULL) {
@@ -161,8 +169,8 @@ void scan()
         tmplist = tmplist->mr_next;
         /*OANA here, bsearch was used, with the compar function*/
         if (!is_old_enough(cur) || ssearch(plist, psize, cur->actual_node)) {
-            cur->mr_next = sd.rlist;
-            sd.rlist = cur;
+            cur->mr_next = sd.rlist->head;
+            sd.rlist->head = cur;
             sd.rcount++;
         } else {
             ((node_t *)(cur->actual_node))->key = 10000;
@@ -184,25 +192,59 @@ void free_node_later(void *n)
     sd.rcount++;
 
     //Look at oldest node in rlist (need to keep pointer to oldest node in rlist)
-    if (is_old_enough(sd.rlist->tail)){
+    if (is_old_enough(sd.rlist->tail)) {
       //If old enough, pop it from rlist and add it to top of vlist
       mr_node_t* to_add = remove_from_tail(sd.rlist);
-      add_to_head(sd.vlist, to_add);
-
-      //If vlist size < 2*#HP, mark previously added node in vlist then keep adding nodes from the end of rlist to the top of vlist
+      add_to_head(sd.vlist, to_add);      
     }
 
     //If vlist size > 2*#HP do one rotation
-    if (vlist_size > H){ // >=?
-      //do a "rotation"
-      // TODO define "rotation" function
+    if (sd.vlist->size > H) { // >=?
+      rotation();
+    } else {//vlist size < 2*#HP
+      
+      //mark previously added node (vlist head)
+      ((node_t*) sd.vlist->head->actual_node)->marked = 1;
+      //keep marking and adding nodes from the end of rlist to the top of vlist, if they are old enough.
+      while(sd.vlist->size <= H && is_old_enough(sd.rlist->tail)) {
+        mr_node_t* to_add = remove_from_tail(sd.rlist);
+        ((node_t*) to_add->actual_node)->marked = 1;
+        add_to_head(sd.vlist, to_add);
+      }
 
-    }
+    } 
 
+}
 
+void rotation(){
+  //verify current HP and mark corresponding node
+  node_t* cur_HP_node = (node_t*)(HP[HP_cur].p);
+  cur_HP_node->marked = 1;
 
+  //increase HP current counter (mod H)
+  HP_cur = (HP_cur + 1) % H;
+
+  //check if tail of vlist is marked
+  node_t* vlist_tail = (node_t*)sd.vlist->tail->actual_node;
+  if (vlist_tail->marked) {  //if tail is marked
+    //unmark it
+    vlist_tail->marked = 0;
+    //remove it from vlist tail
+    //add it to vlist head
+    //TODO Is this working??
+    add_to_head(sd.vlist, remove_from_tail(sd.vlist));
     
-
+  } else { //tail is unmarked
+    //free the memory
+    mr_node_t* vlist_tail_mr = remove_from_tail(sd.vlist);
+    ((node_t *)(vlist_tail_mr->actual_node))->key = 10000;
+    ssfree_alloc(0, vlist_tail_mr->actual_node);
+    ssfree_alloc(1, vlist_tail_mr);
+    
+    //decrease rcount
+    sd.rcount--;
+  }
+    
 }
 
 uint8_t is_old_enough(mr_node_t* n) {
