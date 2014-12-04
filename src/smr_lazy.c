@@ -161,7 +161,7 @@ void scan()
 
     /* Stage 3: Free non-harzardous nodes. */
     tmplist = sd.rlist->head;
-    sd.rlist = NULL;
+    sd.rlist->head = NULL;
     sd.rcount = 0;
     while (tmplist != NULL) {
         /* Pop cur off top of tmplist. */
@@ -195,7 +195,11 @@ void free_node_later(void *n)
     if (is_old_enough(sd.rlist->tail)) {
       //If old enough, pop it from rlist and add it to top of vlist
       mr_node_t* to_add = remove_from_tail(sd.rlist);
-      add_to_head(sd.vlist, to_add);      
+      add_to_head(sd.vlist, to_add); 
+      if (sd.vlist->size <= H) { 
+        //mark previously added node (vlist head) if the list is not large enough yet
+        ((node_t*) sd.vlist->head->actual_node)->marked = 1;
+      }     
     }
 
     //If vlist size > 2*#HP do one rotation
@@ -203,8 +207,6 @@ void free_node_later(void *n)
       rotation();
     } else {//vlist size < 2*#HP
       
-      //mark previously added node (vlist head)
-      ((node_t*) sd.vlist->head->actual_node)->marked = 1;
       //keep marking and adding nodes from the end of rlist to the top of vlist, if they are old enough.
       while(sd.vlist->size <= H && is_old_enough(sd.rlist->tail)) {
         mr_node_t* to_add = remove_from_tail(sd.rlist);
