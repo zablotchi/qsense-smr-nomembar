@@ -22,8 +22,8 @@
 // #include "util.h"
 #include <stdio.h>
 #include <stdlib.h>
-// #include "linkedlist-smr-harris_opt/linkedlist.h"
-#include "linkedlist-smr-hart/node.h"
+#include "linkedlist-smr-harris_opt/linkedlist.h"
+// #include "linkedlist-smr-hart/node.h"
 
 // IGOR: SSALLOC allocator convention:
 // 0 is for actual nodes
