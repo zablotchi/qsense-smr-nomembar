@@ -63,13 +63,13 @@ list_search(intset_t* set, skey_t key, node_t** left_node_ptr) {
 
 try_again_search:    
     left_node = set->head;
-    right_node = set->head->next;
+    right_node = get_unmarked_ref(set->head->next);
     
     while (1) {
 
         HP[base + offset].p = right_node;
         MEM_BARRIER;
-        if (right_node != left_node->next) {
+        if (right_node != get_unmarked_ref(left_node->next)) {
             goto try_again_search;
         }
         offset = 1-offset;
@@ -104,13 +104,13 @@ sval_t harris_find(intset_t* the_list, skey_t key) {
 
 try_again_search:    
     left_node = the_list->head;
-    right_node = the_list->head->next;
+    right_node = get_unmarked_ref(the_list->head->next);
     
     while (1) {
 
         HP[base + offset].p = right_node;
         MEM_BARRIER;
-        if (right_node != left_node->next) {
+        if (right_node != get_unmarked_ref(left_node->next)) {
             goto try_again_search;
         }
         offset = 1-offset;
