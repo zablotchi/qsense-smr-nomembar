@@ -175,6 +175,7 @@ void scan()
             sd.rcount++;
         } else {
             ((node_t *)(cur->actual_node))->key = 10000;
+            ((node_t *)(cur->actual_node))->next = NULL;
             ssfree_alloc(0, cur->actual_node);
             ssfree_alloc(1, cur);
         }
