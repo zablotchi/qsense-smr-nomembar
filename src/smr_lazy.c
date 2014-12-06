@@ -221,7 +221,10 @@ void free_node_later(void *n)
 void rotation(){
   //verify current HP and mark corresponding node
   node_t* cur_HP_node = (node_t*)(HP[HP_cur].p);
-  cur_HP_node->marked = 1;
+
+  if (cur_HP_node != NULL) {
+    cur_HP_node->marked = 1;
+  }
 
   //increase HP current counter (mod H)
   HP_cur = (HP_cur + 1) % H;
