@@ -208,7 +208,7 @@ void free_node_later(void *n)
     } else {//vlist size < 2*#HP
       
       //keep marking and adding nodes from the end of rlist to the top of vlist, if they are old enough.
-      while(sd.vlist->size <= H && is_old_enough(sd.rlist->tail)) {
+      while(sd.vlist->size <= H && sd.rlist->tail != NULL && is_old_enough(sd.rlist->tail)) {
         mr_node_t* to_add = remove_from_tail(sd.rlist);
         ((node_t*) to_add->actual_node)->marked = 1;
         add_to_head(sd.vlist, to_add);
