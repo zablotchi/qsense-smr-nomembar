@@ -9,7 +9,7 @@
 #define NOT_FUZZY 1
 
 #define N_EPOCHS 3
-#define QUIESCENCE_THRESHOLD 1000
+#define QUIESCENCE_THRESHOLD 100
 
 // How many milliseconds should the sleeper threads sleep
 #define SLEEP_AMOUNT 150
