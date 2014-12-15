@@ -195,9 +195,19 @@ void free_node_later(void *n)
     // Create timestamp in mr node
     gettimeofday(&(wrapper_node->created), NULL);
 
-    // wrapper_node->mr_next = sd.rlist->head;
-    // sd.rlist->head = wrapper_node;
-    add_to_head(sd.rlist, wrapper_node);
+    // add_to_head(sd.rlist, wrapper_node);
+
+    wrapper_node->mr_next = sd.rlist->head;
+    wrapper_node->mr_prev = NULL;
+    
+    if (sd.rlist->head == NULL) {
+        sd.rlist->tail = wrapper_node;           
+    } else {
+        sd.rlist->head->mr_prev = wrapper_node;
+    }
+
+    sd.rlist->head = wrapper_node;
+    sd.rlist->size++;
     sd.rcount++;
 
     if (sd.rcount >= R) {
