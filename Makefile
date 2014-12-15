@@ -150,7 +150,7 @@ lfll_smr_no_membar_harris_opt:
 	$(MAKE) "STM=LOCKFREE" "GC=0" src/linkedlist-smr-no-membar-harris_opt
 
 lfll_smr_no_membar_igor_opt:
-	$(MAKE) "STM=LOCKFREE" "GC=0" "VERSION=DEBUG" src/linkedlist-smr-no-membar-igor_opt/
+	$(MAKE) "STM=LOCKFREE" "GC=0" src/linkedlist-smr-no-membar-igor_opt/
 
 lfll_hart_qsbr:
 	$(MAKE) "GC=0" "LOCK=TICKET" src/linkedlist-qsbr-hart
