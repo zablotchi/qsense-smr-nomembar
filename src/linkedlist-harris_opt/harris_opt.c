@@ -151,6 +151,10 @@ sval_t harris_delete(intset_t *the_list, skey_t key) {
 
     physical_delete_right(left_node, right_node);
 
+    // if (!physical_delete_right(left_node, right_node)) {
+    //     list_search(the_list, key, &left_node);
+    // }
+
     return ret;
 }
 
