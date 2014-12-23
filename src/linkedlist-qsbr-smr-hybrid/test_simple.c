@@ -186,13 +186,10 @@ test(void* thread) {
     RR_START_SIMPLE();
 
     int qcount = 0;
-    int op_count = 0;
-    int flag_switch = 0;
-
+    
     while (stop == 0) {
         TEST_LOOP(NULL);
         qcount++;
-        op_count++;
         if (qcount == QUIESCENCE_THRESHOLD) {
             qcount = 0;
             if (fallback.flag == 0) {
@@ -200,19 +197,10 @@ test(void* thread) {
             }
         }
 
-        if (op_count == 10013 && ID == 0){
-            flag_switch++;
-            op_count = 0;
-            fallback.flag = 1-fallback.flag;
-        }
     }
 
     barrier_cross(&barrier);
     RR_STOP_SIMPLE();
-
-    if (ID == 0){
-        printf("Switched flag: %d times\n", flag_switch);
-    }
 
     if (!ID) {
         size_after = DS_SIZE(set);

@@ -121,6 +121,7 @@ int harris_insert(intset_t *the_list, skey_t key, sval_t val) {
         node_t* node_to_add = new_node(key, val, right_node, 0);
 
         while (node_to_add == NULL) {
+            // fprintf(stderr, "Could not allocate regular node\n");
             quiescent_state(NOT_FUZZY);
             node_to_add = new_node(key, val, right_node, 0);
         }

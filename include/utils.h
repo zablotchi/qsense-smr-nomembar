@@ -344,7 +344,7 @@ extern "C" {
   };
 #endif	/*  */
 
-#if defined(HASWELL) || defined(IGORLAPTOPLINUX) || defined(LPDPC4)
+#if defined(HASWELL) || defined(LPDPC4)
 #  define NUMBER_OF_SOCKETS 1
 #  define CORES_PER_SOCKET 8
 #  define CACHE_LINE_SIZE 64
@@ -359,6 +359,16 @@ extern "C" {
     0, 1, 2, 3, 4, 5, 6, 7, 
   };
 #endif	/*  */
+
+#if defined(IGORLAPTOPLINUX)
+#define NUMBER_OF_SOCKETS 1
+#define CORES_PER_SOCKET 2
+#define CACHE_LINE_SIZE 64
+#define NOP_DURATION 2
+  static UNUSED uint8_t  the_cores[] = {
+    0, 1
+  };
+#endif
 
 #if defined(OANALAPTOPLINUX)
 #  define NUMBER_OF_SOCKETS 1

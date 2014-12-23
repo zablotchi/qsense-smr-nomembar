@@ -172,6 +172,7 @@ void process_callbacks(mr_node_t **list)
         next = (*list)->mr_next;
         
         ((node_t *)((*list)->actual_node))->key = 10000;
+        // fprintf(stderr,"Freeing node\n");
         ssfree_alloc(0, (*list)->actual_node);
         ssfree_alloc(1, *list);
         num++;
@@ -240,6 +241,7 @@ void free_node_later (void *q)
     mr_node_t* wrapper_node = ssalloc_alloc(1, sizeof(mr_node_t));
     
     while (wrapper_node == NULL) {
+        fprintf(stderr, "Could not allocate mr_node\n");
         quiescent_state(NOT_FUZZY);
         wrapper_node = ssalloc_alloc(1, sizeof(mr_node_t));
     }

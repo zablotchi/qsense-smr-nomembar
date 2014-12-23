@@ -127,8 +127,8 @@ void process_callbacks(mr_node_t **list)
         next = (*list)->mr_next;
         
         ((node_t *)((*list)->actual_node))->key = 10000;
-        // ssfree_alloc(0, (*list)->actual_node);
-        // ssfree_alloc(1, *list);
+        ssfree_alloc(0, (*list)->actual_node);
+        ssfree_alloc(1, *list);
         num++;
     }
 
@@ -263,8 +263,8 @@ void scan()
                 ltd.rcount++;
             } else {
                 ((node_t *)(cur->actual_node))->key = 10000;      
-                // ssfree_alloc(0, cur->actual_node);
-                // ssfree_alloc(1, cur);
+                ssfree_alloc(0, cur->actual_node);
+                ssfree_alloc(1, cur);
             }
         }
     }
@@ -278,6 +278,19 @@ uint8_t is_old_enough(mr_node_t* n) {
     msec += (now.tv_usec - n->created.tv_usec) / 1000; 
     return (msec >= (SLEEP_AMOUNT + MARGIN)); 
 }
+
+void allocate_fail(int trials) {
+    if (fallback.flag == 1) {
+        scan();
+    } else if (trials >= SWITCH_THRESHOLD) {
+        fallback.flag = 1;
+        fprintf(stderr, "Switched to SMR\n");
+        scan();
+    } else {
+        quiescent_state(NOT_FUZZY);
+    }
+}
+
 
 // UTILITY FUNCTIONS
 

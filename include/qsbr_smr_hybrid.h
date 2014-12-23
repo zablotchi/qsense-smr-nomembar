@@ -10,6 +10,7 @@
 
 #define N_EPOCHS 3
 #define QUIESCENCE_THRESHOLD 100
+#define SWITCH_THRESHOLD 1
 
 // How many milliseconds should the sleeper threads sleep
 #define SLEEP_AMOUNT 150
@@ -84,5 +85,8 @@ void scan();
 void quiescent_state (int flag);
 
 void free_node_later(void *);
+
+//Called when impossible to allocate node; triggers switch to SMR.
+void allocate_fail(int trials);
 
 #endif
