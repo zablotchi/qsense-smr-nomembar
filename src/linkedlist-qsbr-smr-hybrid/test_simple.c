@@ -189,14 +189,16 @@ test(void* thread) {
     
     while (stop == 0) {
 
-        uint64_t sleep_rand = (my_random(&(seeds[0]), &(seeds[1]), &(seeds[2]))
-                        % (1001));
+        
+        if (ID % 2 == 0){
+            uint64_t sleep_rand = (my_random(&(seeds[0]), &(seeds[1]), &(seeds[2]))
+                            % (1001));
 
-        struct timespec sleep;
-            sleep.tv_sec = 0;
-            sleep.tv_nsec = (sleep_rand % 1000) * 1000;
-        nanosleep(&sleep, NULL);
-
+            struct timespec sleep;
+                sleep.tv_sec = 0;
+                sleep.tv_nsec = (sleep_rand % 1000) * 100000;
+            nanosleep(&sleep, NULL);
+        }
         TEST_LOOP(NULL);
         qcount++;
         if (qcount == QUIESCENCE_THRESHOLD) {
