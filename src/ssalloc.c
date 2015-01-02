@@ -16,7 +16,7 @@
 
 #define SSMEM_CACHE_LINE_SIZE 64
 #define SSALLOC_SIZE_BIG  1024 * 1024 * 1024
-#define SSALLOC_SIZE_SMALL 1024 * 1024
+#define SSALLOC_SIZE_SMALL 64 * 1024
 
 #if !defined(SSALLOC_USE_MALLOC)
 static __thread uintptr_t ssalloc_app_mem[SSALLOC_NUM_ALLOCATORS];
@@ -24,7 +24,7 @@ static __thread size_t alloc_next[SSALLOC_NUM_ALLOCATORS] = { 0 };
 static __thread void* ssalloc_free_list[SSALLOC_NUM_ALLOCATORS][256] = { { 0 } };
 static __thread uint8_t ssalloc_free_cur[SSALLOC_NUM_ALLOCATORS] = { 0 };
 static __thread uint8_t ssalloc_free_num[SSALLOC_NUM_ALLOCATORS] = { 0 };
-static ssalloc_size[2] = {SSALLOC_SIZE_SMALL, SSALLOC_SIZE_BIG};
+static size_t ssalloc_size[2] = {SSALLOC_SIZE_SMALL, SSALLOC_SIZE_BIG};
 #endif 
 
 uint64_t memory_reuse;

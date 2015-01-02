@@ -135,10 +135,12 @@ void mr_thread_exit()
 {
     qd[qad.thread_index].in_critical = 0;
 
-    while(qd[qad.thread_index].rcount > 0) {
+    int retries = 0;
+    while(qd[qad.thread_index].rcount > 0 && retries < MAX_EXIT_RETRIES) {
         quiescent_state(FUZZY);
         // cond_yield();
         sched_yield();
+        retries++;
     }
 }
 

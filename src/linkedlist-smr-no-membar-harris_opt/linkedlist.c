@@ -19,8 +19,7 @@ new_node(skey_t key, sval_t val, node_t *next, int initializing) {
     node = (volatile node_t *) ssalloc_alloc(0, sizeof(node_t));
 
     if (node == NULL) {
-        perror("malloc @ new_node");
-        exit(1);
+        return NULL;
     }
 
     node->key = key;

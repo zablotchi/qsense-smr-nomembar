@@ -148,6 +148,10 @@ int harris_insert(intset_t *the_list, skey_t key, sval_t val) {
 
         node_t* node_to_add = new_node(key, val, right_node, 0);
 
+        while (node_to_add == NULL) {
+            scan();
+            node_to_add = new_node(key, val, right_node, 0);
+        }
         // Try to swing left_node's unmarked next pointer to a new node
 
         if (CAS_PTR(&left_node->next, right_node, node_to_add) == right_node) {

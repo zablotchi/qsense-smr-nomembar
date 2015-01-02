@@ -27,6 +27,8 @@
 #define H (K * ltd.nthreads)
 #define R (100 + 2*H)
 
+#define MAX_EXIT_RETRIES 100 * ltd.nthreads
+
 typedef ALIGNED(CACHE_LINE_SIZE) struct fallback_flag {
   volatile uint8_t flag;
   char padding[CACHE_LINE_SIZE - sizeof(uint8_t)];

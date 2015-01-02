@@ -181,6 +181,11 @@ test(void* thread) {
     int qcount = 0;
 
     while (stop == 0) {
+
+        if (ID == 1 && qcount == 10) {
+            goto kill_thread;
+        }
+
         TEST_LOOP(NULL);
         qcount++;
 
@@ -191,6 +196,7 @@ test(void* thread) {
     }
     mr_thread_exit();
 
+kill_thread:
     barrier_cross(&barrier);
     RR_STOP_SIMPLE();
 

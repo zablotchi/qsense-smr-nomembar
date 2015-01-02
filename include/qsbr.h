@@ -30,6 +30,8 @@
 
 #define QUIESCENCE_THRESHOLD 100
 
+#define MAX_EXIT_RETRIES 100 * qad.nthreads
+
 void quiescent_state (int flag);
 
 void free_node_later(void * q);

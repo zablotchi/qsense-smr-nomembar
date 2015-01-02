@@ -41,6 +41,8 @@
 #define H (K * sd.nthreads)
 #define R (100 + 2*H)
 
+#define MAX_EXIT_RETRIES 100 * sd.nthreads
+
 #ifndef SLEEP_AMOUNT
     #define SLEEP_AMOUNT 150
 #endif

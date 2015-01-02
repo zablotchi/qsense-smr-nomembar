@@ -65,9 +65,11 @@ void mr_thread_exit()
     for (i = 0; i < K; i++)
         HP[K * sd.thread_index + i].p = NULL;
     
-    while (sd.rcount > 0) {
+    int retries = 0;
+    while (sd.rcount > 0 && retries < MAX_EXIT_RETRIES) {
         scan();
         sched_yield();
+        retries++;
     }
 }
 

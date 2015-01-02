@@ -184,10 +184,21 @@ test(void* thread) {
 
     RR_START_SIMPLE();
 
+    int qcount = 0;
+
     while (stop == 0) {
+
+        if (ID == 1 && qcount == 10) {
+            goto kill_thread;
+        }
+
         TEST_LOOP(NULL);
+        qcount++;
     }
 
+    mr_thread_exit();
+    
+kill_thread:    
     barrier_cross(&barrier);
     RR_STOP_SIMPLE();
 
@@ -223,7 +234,6 @@ test(void* thread) {
 
     SSPFDTERM();
 
-    mr_thread_exit();
     pthread_exit(NULL);
 }
 

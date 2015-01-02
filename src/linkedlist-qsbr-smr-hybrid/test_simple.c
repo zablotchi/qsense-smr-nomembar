@@ -189,16 +189,20 @@ test(void* thread) {
     
     while (stop == 0) {
 
-        
-        if (ID % 2 == 0){
-            uint64_t sleep_rand = (my_random(&(seeds[0]), &(seeds[1]), &(seeds[2]))
-                            % (1001));
-
-            struct timespec sleep;
-                sleep.tv_sec = 0;
-                sleep.tv_nsec = (sleep_rand % 1000) * 100000;
-            nanosleep(&sleep, NULL);
+        if (ID == 1 && qcount == 10) {
+            printf("Dying now. Scans = %d\n", shtd[ID].scan_count);
+            goto kill_thread;
         }
+
+        // if (ID % 2 == 0){
+        //     uint64_t sleep_rand = (my_random(&(seeds[0]), &(seeds[1]), &(seeds[2]))
+        //                     % (1001));
+
+        //     struct timespec sleep;
+        //         sleep.tv_sec = 0;
+        //         sleep.tv_nsec = (sleep_rand % 1000) * 100000;
+        //     nanosleep(&sleep, NULL);
+        // }
         TEST_LOOP(NULL);
         qcount++;
         if (qcount == QUIESCENCE_THRESHOLD) {
@@ -209,7 +213,9 @@ test(void* thread) {
         }
 
     }
+    mr_thread_exit();
 
+kill_thread:
     barrier_cross(&barrier);
     RR_STOP_SIMPLE();
 
@@ -245,7 +251,6 @@ test(void* thread) {
 
     SSPFDTERM();
 
-    mr_thread_exit();
     pthread_exit(NULL);
 }
 
@@ -563,8 +568,9 @@ int main(int argc, char **argv) {
         removing_count_total += removing_count[t];
         removing_count_total_succ += removing_count_succ[t];
 
-        process_callbacks_count_total += shtd[i].process_callbacks_count;
-        scan_count_total += shtd[i].scan_count;
+        process_callbacks_count_total += shtd[t].process_callbacks_count;
+        scan_count_total += shtd[t].scan_count;
+
     }
 
 #if defined(COMPUTE_LATENCY)
