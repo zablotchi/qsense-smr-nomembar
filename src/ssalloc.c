@@ -16,7 +16,7 @@
 
 #define SSMEM_CACHE_LINE_SIZE 64
 #define SSALLOC_SIZE_BIG  1024 * 1024 * 1024
-#define SSALLOC_SIZE_SMALL 85 * 1024
+#define SSALLOC_SIZE_SMALL 1024 * 1024
 
 #if !defined(SSALLOC_USE_MALLOC)
 static __thread uintptr_t ssalloc_app_mem[SSALLOC_NUM_ALLOCATORS];
