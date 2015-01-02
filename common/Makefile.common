@@ -310,10 +310,10 @@ ifeq ($(LATENCY),5)
 endif
 
 
-ifeq ($(INIT),all)
-	CFLAGS += -DINITIALIZE_FROM_ONE=0
-else
+ifeq ($(INIT),one)
 	CFLAGS += -DINITIALIZE_FROM_ONE=1
+else
+	CFLAGS += -DINITIALIZE_FROM_ONE=0
 endif
 
 ifeq ($(SET_CPU),0)
