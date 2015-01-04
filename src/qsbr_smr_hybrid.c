@@ -65,7 +65,7 @@ void mr_thread_exit()
     for (i = 0; i < K; i++)
         HP[K * ltd.thread_index + i].p = NULL;
     
-    printf("Exiting now, max retries = %d\n", MAX_EXIT_RETRIES);
+    // printf("Exiting now, max retries = %d\n", MAX_EXIT_RETRIES);
     int retries = 0;
 
     while (ltd.rcount > 0 && retries < MAX_EXIT_RETRIES) {
@@ -74,7 +74,7 @@ void mr_thread_exit()
         retries++;
     }
 
-    printf("Scan count = %d; Retries = %d\n", shtd[ltd.thread_index].scan_count, retries);
+    // printf("Scan count = %d; Retries = %d\n", shtd[ltd.thread_index].scan_count, retries);
 }
 
 void mr_reinitialize()
