@@ -266,6 +266,9 @@ ifeq ($(TEST),old)
 	TEST_FILE = test.c
 	CFLAGS += -DGC=0
 else
+    ifeq ($(TEST), time)
+        TEST_FILE = test_time.c
+    endif 
 
 	ifeq ($(TEST),correct)
 		TEST_FILE=test_correct.c
