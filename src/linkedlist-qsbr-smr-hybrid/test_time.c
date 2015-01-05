@@ -681,7 +681,7 @@ void print_statistics(size_t duration, int num_periods) {
         + removing_count_total - putting_count_total_old - getting_count_total_old - removing_count_total_old) * 1000.0 / duration;
 
     if (num_periods == 1) {
-        printf("#%4s%12s%10s\n", "Per", "Throughput", "Mops");
+        printf("#%7s%12s%10s\n", "Elapsed", "Throughput", "Mops");
     }
-    printf(" %4d%12.0f%10.3f\n", num_periods, throughput, throughput/1e6);
+    printf(" %7.1f%12.0f%10.3f\n", num_periods * duration/1000.0, throughput, throughput/1e6);
 }
