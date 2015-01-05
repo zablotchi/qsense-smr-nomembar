@@ -26,7 +26,7 @@
 #endif
 
 #include "intset.h"
-#include "smr_no_membar.h"
+#include "smr.h"
 
 /* ################################################################### *
  * Definition of macros: per data structure
@@ -72,7 +72,6 @@ static volatile int wakeup_stop;
 static uint8_t has_sleeper_thread[NUMBER_OF_SOCKETS * CORES_PER_SOCKET];
 extern uint64_t memory_reuse;
 extern uint64_t freed_nodes;
-extern shared_thread_data_t *shtd;
 
 TEST_VARS_GLOBAL
 ;
@@ -176,7 +175,6 @@ test(void* thread) {
     RETRY_STATS_ZERO();
 
 
-    int qcount = 0;
     int n_period = 0;
 
     while (final_stop == 0) {
@@ -205,13 +203,7 @@ test(void* thread) {
             //     sched_yield();
             // } else {
                 TEST_LOOP(NULL);
-                qcount++;
-                if (qcount == QUIESCENCE_THRESHOLD) {
-                    qcount = 0;
-                    if (fallback.flag == 0) {
-                        quiescent_state(FUZZY);
-                    }
-                }
+        
             // }
         }
 
@@ -589,9 +581,6 @@ int main(int argc, char **argv) {
     // volatile uint64_t removing_count_total = 0;
     volatile uint64_t removing_count_total_succ = 0;
 
-    volatile uint64_t process_callbacks_count_total = 0;
-    volatile uint64_t scan_count_total = 0;
-
     for (t = 0; t < num_threads; t++) {
         putting_suc_total += putting_succ[t];
         putting_fal_total += putting_fail[t];
@@ -605,9 +594,6 @@ int main(int argc, char **argv) {
         getting_count_total_succ += getting_count_succ[t];
         // removing_count_total += removing_count[t];
         removing_count_total_succ += removing_count_succ[t];
-
-        process_callbacks_count_total += shtd[t].process_callbacks_count;
-        scan_count_total += shtd[t].scan_count;
 
     }
 
@@ -653,8 +639,6 @@ int main(int argc, char **argv) {
     double throughput = (putting_count_total + getting_count_total
             + removing_count_total) * 1000.0 / duration_total;
     printf("#txs %zu\t(%-10.0f\n", num_threads, throughput);
-
-    printf("Scans: %llu , Process callbacks: %llu\n", scan_count_total, process_callbacks_count_total);
 
     printf("#Mops %.3f\n", throughput / 1e6);
 
