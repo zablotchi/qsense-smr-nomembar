@@ -68,6 +68,6 @@ static inline int strkey_compare(strkey_t k1, strkey_t k2) {
 #define DEFAULT_NB_THREADS              1
 #define DEFAULT_RANGE                   (2 * DEFAULT_INITIAL)
 #define DEFAULT_UPDATE                  20
-#define DEFAULT_N_PERIODS				10
+#define DEFAULT_N_PERIODS		5
 
 #endif	/*  _COMMON_H_ */
