@@ -26,7 +26,7 @@
 #endif
 
 #include "intset.h"
-#include "qsbr_smr_hybrid.h"
+#include "qsbr.h"
 
 /* ################################################################### *
  * Definition of macros: per data structure

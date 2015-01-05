@@ -124,7 +124,7 @@ lfll_smr_harris_opt:
 	$(MAKE) "STM=LOCKFREE" "GC=0" src/linkedlist-smr-harris_opt	
 
 lfll_qsbr_harris_opt:
-	$(MAKE) "LOCK=TICKET" "GC=0" src/linkedlist-qsbr-harris_opt
+	$(MAKE) "LOCK=TICKET" "GC=0" "TEST=time" src/linkedlist-qsbr-harris_opt
 
 malloc_compare: lfll_harris_opt lfll_harris_opt_tcmalloc lfll_harris_opt_jemalloc
 
@@ -147,7 +147,7 @@ lfll_smr_no_membar:
 	$(MAKE) "STM=LOCKFREE" "GC=0" src/linkedlist-smr-no-membar	
 
 lfll_smr_no_membar_harris_opt:
-	$(MAKE) "STM=LOCKFREE" "GC=0" src/linkedlist-smr-no-membar-harris_opt
+	$(MAKE) "STM=LOCKFREE" "GC=0" "TEST=time" src/linkedlist-smr-no-membar-harris_opt
 
 lfll_smr_no_membar_igor_opt:
 	$(MAKE) "STM=LOCKFREE" "GC=0" src/linkedlist-smr-no-membar-igor_opt/
