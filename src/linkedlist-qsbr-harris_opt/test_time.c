@@ -199,9 +199,9 @@ test(void* thread) {
             //     nanosleep(&sleep, NULL);
             // }
 
-            // if (ID == 1 && n_period > periods/2) {
-            //     sched_yield();
-            // } else {
+            if (ID == 1 && n_period > periods/2) {
+                sched_yield();
+            } else {
                 TEST_LOOP(NULL);
                 qcount++;
                 if (qcount == QUIESCENCE_THRESHOLD) {
@@ -210,7 +210,7 @@ test(void* thread) {
                     quiescent_state(FUZZY);
               
                 }
-            // }
+            }
         }
 
         putting_count[ID] += my_putting_count;
