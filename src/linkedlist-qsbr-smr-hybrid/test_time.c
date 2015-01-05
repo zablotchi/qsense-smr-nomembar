@@ -177,6 +177,7 @@ test(void* thread) {
 
 
     int qcount = 0;
+    int n_period = 0;
 
     while (final_stop == 0) {
 
@@ -199,15 +200,19 @@ test(void* thread) {
             //         sleep.tv_nsec = (sleep_rand % 1000) * 100000;
             //     nanosleep(&sleep, NULL);
             // }
-            TEST_LOOP(NULL);
-            qcount++;
-            if (qcount == QUIESCENCE_THRESHOLD) {
-                qcount = 0;
-                if (fallback.flag == 0) {
-                    quiescent_state(FUZZY);
+
+            if (ID == 1 && n_period > periods/2) {
+                sched_yield();
+            } else {
+                TEST_LOOP(NULL);
+                qcount++;
+                if (qcount == QUIESCENCE_THRESHOLD) {
+                    qcount = 0;
+                    if (fallback.flag == 0) {
+                        quiescent_state(FUZZY);
+                    }
                 }
             }
-
         }
 
         putting_count[ID] += my_putting_count;
@@ -220,6 +225,8 @@ test(void* thread) {
 
         // Signal to main that everybody has stopped
         barrier_cross(&barrier_global);
+
+        n_period ++;
     }
 
     
