@@ -150,8 +150,10 @@ int harris_insert(intset_t *the_list, skey_t key, sval_t val) {
 
         int trials = 0;
         while (node_to_add == NULL) {
-            trials++;
+            
             allocate_fail(trials);
+            trials++;
+
             node_to_add = new_node(key, val, right_node, 0);
         }
 

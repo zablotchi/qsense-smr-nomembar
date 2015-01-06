@@ -212,7 +212,6 @@ void free_node_later (void *q)
 void scan()
 {
 
-
     /* Iteratation variables. */
     mr_node_t *cur;
     int i,j;
@@ -286,14 +285,24 @@ uint8_t is_old_enough(mr_node_t* n) {
 }
 
 void allocate_fail(int trials) {
-    if (fallback.flag == 1) {
+
+    if (fallback.flag == 2){
+        //quiesce a number of times
+        int i;
+        for (i = 0; i < 10; i++) {
+            quiescent_state(FUZZY);
+        }
+        fallback.flag = 0;
+        printf("[%d] Switched to QSBR from allocate fail. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+    } else if (fallback.flag == 1) {
         scan();
-    } else if (trials >= SWITCH_THRESHOLD) {
+    } else if (fallback.flag == 0 && trials >= SWITCH_THRESHOLD) {
         fallback.flag = 1;
-        fprintf(stderr, "Switched to SMR\n");
+
+        fprintf(stderr, "[%d] Switched to SMR: %d\n", ltd.thread_index, trials);
         scan();
     } else {
-        quiescent_state(NOT_FUZZY);
+        quiescent_state(FUZZY);
     }
 }
 

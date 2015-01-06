@@ -68,11 +68,15 @@ uint32_t rand_max;
 
 static volatile int stop, final_stop;
 static volatile int wakeup_stop;
+static volatile int *is_present;
+static volatile int *r_count;
+
 
 static uint8_t has_sleeper_thread[NUMBER_OF_SOCKETS * CORES_PER_SOCKET];
 extern uint64_t memory_reuse;
 extern uint64_t freed_nodes;
 extern shared_thread_data_t *shtd;
+extern __thread local_thread_data_t ltd;
 
 TEST_VARS_GLOBAL
 ;
@@ -96,6 +100,7 @@ volatile uint64_t getting_count_total = 0;
 volatile uint64_t removing_count_total = 0;
 
 void print_statistics(size_t duration, int num_periods);
+int all_threads_present();
 
 /* ################################################################### *
  * LOCALS
@@ -178,7 +183,6 @@ test(void* thread) {
 
     int qcount = 0;
     int n_period = 0;
-
     while (final_stop == 0) {
 
         // Signal from main to start
@@ -201,15 +205,39 @@ test(void* thread) {
             //     nanosleep(&sleep, NULL);
             // }
 
-            if (ID == 1 && n_period > periods/2) {
+            if (ID == 1 && ( n_period > periods/3 && n_period < (2*periods)/3) ) {
                 sched_yield();
             } else {
+
                 TEST_LOOP(NULL);
+
                 qcount++;
                 if (qcount == QUIESCENCE_THRESHOLD) {
                     qcount = 0;
-                    if (fallback.flag == 0) {
+                    //Signal to the other threads that 
+                    //thread is present in the system (not delayed) 
+                    is_present[ID] = 1;
+                    r_count[ID] = ltd.rcount;
+
+                    if (fallback.flag == 0) { 
                         quiescent_state(FUZZY);
+
+                    } else if (fallback.flag == 1) {
+                        if (all_threads_present() == 1) {
+                            fallback.flag = 2;
+                            printf("[%d] Switched to recovery. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+                            for (i = 0; i < 10; i++) {
+                                quiescent_state(FUZZY);
+                            }
+                            // fallback.flag = 0;
+                        }
+                    } else {
+                        for (i = 0; i < 10; i++) {
+                                quiescent_state(FUZZY);
+                            }
+                        printf("[%d] Switched to QSBR. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+                        fallback.flag = 0;
+
                     }
                 }
             }
@@ -276,8 +304,21 @@ void* wakeup(void * arg) {
     timeout.tv_sec = sthd->sleep_millis / 1000;
     timeout.tv_nsec = (sthd->sleep_millis % 1000) * 1000000;
 
+    int wakeup_count = 0;
     while (wakeup_stop == 0) {
+        // One of the sleeper threads periodically resets the presence vector
+            
+        if (wakeup_count == PRESENCE_RESET_THRESHOLD){
+            wakeup_count = 0;
+            if (core == 0){
+                int i;
+                for (i = 0; i < num_threads; i++){
+                    is_present[i] = 0;
+                }             
+            }            
+        } 
         nanosleep(&timeout, NULL);
+        wakeup_count ++;
     }
 
     pthread_exit(NULL);
@@ -471,6 +512,18 @@ int main(int argc, char **argv) {
     pthread_t sleeper_threads[num_cores];
     sleeper_thread_data_t* slthds = (sleeper_thread_data_t *) malloc(
             num_cores * sizeof(sleeper_thread_data_t));
+
+    // Initialize the is_present vector
+    is_present = (int*) malloc(num_threads * sizeof(int));
+    for (i = 0; i < num_threads; i++){
+        is_present[i] = 1;
+    }
+
+    //Initialize the rcount vector
+    r_count = (int*) malloc(num_threads * sizeof(int));
+    for (i = 0; i < num_threads; i++){
+        r_count[i] = 0;
+    }
 
     /* Initialize and set thread detached attribute */
     pthread_attr_t attr;
@@ -691,4 +744,15 @@ void print_statistics(size_t duration, int num_periods) {
         printf("#%7s%12s%10s\n", "Elapsed", "Throughput", "Mops");
     }
     printf(" %7.1f%12.0f%10.3f\n", num_periods * duration/1000.0, throughput, throughput/1e6);
+}
+
+//verify is_present vector; if all threads are present attmpt QSBR mode again.
+int all_threads_present(){
+    int i;
+    for (i=0; i < num_threads; i++){
+        if (is_present[i] == 0){
+            return 0;
+        }
+    }
+    return 1;
 }

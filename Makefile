@@ -147,7 +147,7 @@ lfll_smr_no_membar:
 	$(MAKE) "STM=LOCKFREE" "GC=0" src/linkedlist-smr-no-membar	
 
 lfll_smr_no_membar_harris_opt:
-	$(MAKE) "STM=LOCKFREE" "GC=0" "TEST=time" src/linkedlist-smr-no-membar-harris_opt
+	$(MAKE) "STM=LOCKFREE" "GC=0" src/linkedlist-smr-no-membar-harris_opt
 
 lfll_smr_no_membar_igor_opt:
 	$(MAKE) "STM=LOCKFREE" "GC=0" src/linkedlist-smr-no-membar-igor_opt/
@@ -156,7 +156,7 @@ lfll_hart_qsbr:
 	$(MAKE) "GC=0" "LOCK=TICKET" src/linkedlist-qsbr-hart
 
 lfll_hybrid_harris_opt:
-	$(MAKE) "GC=0" "LOCK=TICKET" "TEST=time" src/linkedlist-qsbr-smr-hybrid	
+	$(MAKE) "GC=0" "LOCK=TICKET" "TEST=time" "VERSION=DEBUG" src/linkedlist-qsbr-smr-hybrid	
 
 seqll:
 	$(MAKE) "STM=SEQUENTIAL" "SEQ_NO_FREE=1" src/linkedlist-seq

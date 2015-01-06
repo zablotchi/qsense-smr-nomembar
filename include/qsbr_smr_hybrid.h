@@ -10,7 +10,8 @@
 
 #define N_EPOCHS 3
 #define QUIESCENCE_THRESHOLD 100
-#define SWITCH_THRESHOLD 1
+#define SWITCH_THRESHOLD 10
+#define PRESENCE_RESET_THRESHOLD 1
 
 // How many milliseconds should the sleeper threads sleep
 #define SLEEP_AMOUNT 150
