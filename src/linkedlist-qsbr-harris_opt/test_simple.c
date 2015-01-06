@@ -182,9 +182,9 @@ test(void* thread) {
 
     while (stop == 0) {
 
-        if (ID == 1 && qcount == 10) {
-            goto kill_thread;
-        }
+        // if (ID == 1 && qcount == 10) {
+        //     goto kill_thread;
+        // }
 
         TEST_LOOP(NULL);
         qcount++;

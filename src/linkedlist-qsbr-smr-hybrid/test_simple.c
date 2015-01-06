@@ -189,10 +189,10 @@ test(void* thread) {
     
     while (stop == 0) {
 
-        if (ID == 1 && qcount == 10) {
-            printf("Dying now. Scans = %d\n", shtd[ID].scan_count);
-            goto kill_thread;
-        }
+        // if (ID == 1 && qcount == 10) {
+        //     printf("Dying now. Scans = %d\n", shtd[ID].scan_count);
+        //     goto kill_thread;
+        // }
 
         // if (ID % 2 == 0){
         //     uint64_t sleep_rand = (my_random(&(seeds[0]), &(seeds[1]), &(seeds[2]))
