@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "linkedlist-smr-lazy/linkedlist.h"
+#include "sleeper_threads.h"
 
 // IGOR: SSALLOC allocator convention:
 // 0 is for actual nodes
@@ -33,6 +34,7 @@ __thread uint64_t HP_cur;
 
 uint8_t is_old_enough(mr_node_t* n);
 void rotation();
+void do_nothing(){}
 
 void mr_init_global(uint64_t nthreads){
   /* Allocate HP array. Over-allocate since the parent has pid 32. */
@@ -47,6 +49,9 @@ void mr_init_global(uint64_t nthreads){
   int i;
   for (i = 0; i < K*(nthreads); i++)
     HP[i].p = NULL;
+
+  //create sleeper threads
+  init_sleeper_threads(nthreads, do_nothing);
 }
 
 void mr_init_local(uint64_t thread_index, uint64_t nthreads){
@@ -84,6 +89,12 @@ void mr_thread_exit()
         sched_yield();
     }
 }
+
+void mr_exit_global(){
+    //join sleeper threads
+    join_sleeper_threads();
+}
+
 
 void mr_reinitialize()
 {

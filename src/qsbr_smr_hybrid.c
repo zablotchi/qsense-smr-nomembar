@@ -65,13 +65,13 @@ void mr_init_global(uint64_t nthreads) {
 
     fallback.flag = 0;
 
-    //TODO SLEEPER create sleeper threads
+    //create sleeper threads
     init_sleeper_threads(nthreads, reset_presence);
     
 }
 
 void mr_exit_global(){
-    //TODO SLEEPER join sleeper threads
+    //join sleeper threads
     join_sleeper_threads();
 }
 
