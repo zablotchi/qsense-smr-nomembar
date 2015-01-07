@@ -80,6 +80,11 @@ void mr_thread_exit()
 
 void mr_reinitialize()
 {
+    qg->global_epoch = 1;
+    int i;
+    for (i = 0; i < ltd.nthreads; i++) {
+        shtd[i].epoch = 0;
+    }
 }
 
 int update_epoch()

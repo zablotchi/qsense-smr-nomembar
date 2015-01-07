@@ -231,6 +231,7 @@ test(void* thread) {
 
                     } else if (fallback.flag == 1) {
                         if (all_threads_present() == 1) {
+                            mr_reinitialize();
                             fallback.flag = 0;
                             printf("[%d] Switched to QSBR. Rcount:%d\n", ltd.thread_index, ltd.rcount);
                             for (i = 0; i < 10; i++) {
