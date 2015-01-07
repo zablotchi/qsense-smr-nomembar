@@ -222,7 +222,7 @@ test(void* thread) {
                     r_count[ID] = ltd.rcount;
 
                     if (ltd.last_flag == 1 && fallback.flag == 0) {
-                        for (i = 0; i < 10; i++) {
+                        for (i = 0; i < 100; i++) {
                             quiescent_state(FUZZY);
                         }
                         printf("[%d] Quiescing before switch to QSBR from test. Rcount:%d\n", ltd.thread_index, ltd.rcount);
