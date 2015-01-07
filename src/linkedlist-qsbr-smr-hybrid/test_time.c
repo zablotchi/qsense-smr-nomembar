@@ -239,9 +239,9 @@ test(void* thread) {
                             // fallback.flag = 0;
                         }
                     } 
+                    ltd.last_flag = fallback.flag;
                 }
 
-                ltd.last_flag = fallback.flag;
             }
         }
 
