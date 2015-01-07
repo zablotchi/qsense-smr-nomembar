@@ -115,16 +115,16 @@ lfll_smr_harris:
 	$(MAKE) "GC=0" "STM=LOCKFREE" src/linkedlist-smr
 
 lfll_smr_lazy:
-	$(MAKE) "GC=0" "STM=LOCKFREE" src/linkedlist-smr-lazy	
+	$(MAKE) "GC=0" "STM=LOCKFREE" "INIT=one" src/linkedlist-smr-lazy	
 
 lfll_harris_opt:
 	$(MAKE) "STM=LOCKFREE" src/linkedlist-harris_opt
 	
 lfll_smr_harris_opt:
-	$(MAKE) "STM=LOCKFREE" "GC=0" src/linkedlist-smr-harris_opt	
+	$(MAKE) "STM=LOCKFREE" "GC=0" "INIT=one" src/linkedlist-smr-harris_opt	
 
 lfll_qsbr_harris_opt:
-	$(MAKE) "LOCK=TICKET" "GC=0" src/linkedlist-qsbr-harris_opt
+	$(MAKE) "LOCK=TICKET" "GC=0" "INIT=one" "TEST=time" src/linkedlist-qsbr-harris_opt
 
 malloc_compare: lfll_harris_opt lfll_harris_opt_tcmalloc lfll_harris_opt_jemalloc
 
@@ -147,16 +147,16 @@ lfll_smr_no_membar:
 	$(MAKE) "STM=LOCKFREE" "GC=0" src/linkedlist-smr-no-membar	
 
 lfll_smr_no_membar_harris_opt:
-	$(MAKE) "STM=LOCKFREE" "GC=0" src/linkedlist-smr-no-membar-harris_opt
+	$(MAKE) "STM=LOCKFREE" "GC=0" "INIT=one" "TEST=time" src/linkedlist-smr-no-membar-harris_opt
 
 lfll_smr_no_membar_igor_opt:
-	$(MAKE) "STM=LOCKFREE" "GC=0" src/linkedlist-smr-no-membar-igor_opt/
+	$(MAKE) "STM=LOCKFREE" "GC=0" "INIT=one" src/linkedlist-smr-no-membar-igor_opt/
 
 lfll_hart_qsbr:
 	$(MAKE) "GC=0" "LOCK=TICKET" src/linkedlist-qsbr-hart
 
 lfll_hybrid_harris_opt:
-	$(MAKE) "GC=0" "LOCK=TICKET" src/linkedlist-qsbr-smr-hybrid	
+	$(MAKE) "GC=0" "LOCK=TICKET" "INIT=one" "TEST=time" src/linkedlist-qsbr-smr-hybrid	
 
 seqll:
 	$(MAKE) "STM=SEQUENTIAL" "SEQ_NO_FREE=1" src/linkedlist-seq
