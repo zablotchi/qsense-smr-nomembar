@@ -221,27 +221,27 @@ test(void* thread) {
                     is_present[ID] = 1;
                     r_count[ID] = ltd.rcount;
 
-                    if (fallback.flag == 0) { 
+                    if (ltd.last_flag == 1 && fallback.flag == 0) {
+                        for (i = 0; i < 10; i++) {
+                            quiescent_state(FUZZY);
+                        }
+                        printf("[%d] Quiescing before switch to QSBR from test. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+                    } else if (fallback.flag == 0) { 
                         quiescent_state(FUZZY);
 
                     } else if (fallback.flag == 1) {
                         if (all_threads_present() == 1) {
-                            fallback.flag = 2;
-                            printf("[%d] Switched to recovery. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+                            fallback.flag = 0;
+                            printf("[%d] Switched to QSBR. Rcount:%d\n", ltd.thread_index, ltd.rcount);
                             for (i = 0; i < 10; i++) {
                                 quiescent_state(FUZZY);
                             }
                             // fallback.flag = 0;
                         }
-                    } else {
-                        for (i = 0; i < 10; i++) {
-                                quiescent_state(FUZZY);
-                            }
-                        printf("[%d] Switched to QSBR. Rcount:%d\n", ltd.thread_index, ltd.rcount);
-                        fallback.flag = 0;
-
-                    }
+                    } 
                 }
+
+                ltd.last_flag = fallback.flag;
             }
         }
 

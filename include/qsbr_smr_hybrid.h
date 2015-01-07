@@ -76,8 +76,9 @@ struct local_thread_data {
   uint64_t rcount;
   uint64_t nthreads;
   uint64_t thread_index;
+  uint8_t last_flag;
 
-  char padding[CACHE_LINE_SIZE - 5*sizeof(uint64_t) - sizeof(void **)];
+  char padding[CACHE_LINE_SIZE - 5*sizeof(uint64_t) - sizeof(void **) - sizeof(uint8_t)];
 };
 
 typedef ALIGNED(CACHE_LINE_SIZE) struct shared_thread_data shared_thread_data_t;

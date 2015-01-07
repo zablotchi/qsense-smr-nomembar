@@ -24,6 +24,7 @@ void mr_init_local(uint64_t thread_index, uint64_t nthreads) {
     ltd.nthreads = nthreads;
     ltd.rcount = 0;
     ltd.plist = (void **) malloc(sizeof(void *) * K * nthreads);
+    ltd.last_flag = 0;
 }
 
 // TODO IGOR OANA add NULL verification after memory allocation
@@ -286,14 +287,21 @@ uint8_t is_old_enough(mr_node_t* n) {
 
 void allocate_fail(int trials) {
 
-    if (fallback.flag == 2){
-        //quiesce a number of times
+    // if (fallback.flag == 2){
+    //     //quiesce a number of times
+    //     int i;
+    //     for (i = 0; i < 10; i++) {
+    //         quiescent_state(FUZZY);
+    //     }
+    //     fallback.flag = 0;
+    //     printf("[%d] Switched to QSBR from allocate fail. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+
+    if (ltd.last_flag == 1 && fallback.flag == 0) {
         int i;
         for (i = 0; i < 10; i++) {
             quiescent_state(FUZZY);
         }
-        fallback.flag = 0;
-        printf("[%d] Switched to QSBR from allocate fail. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+        printf("[%d] Quiescing before switch to QSBR from allocate_fail. Rcount:%d\n", ltd.thread_index, ltd.rcount);
     } else if (fallback.flag == 1) {
         scan();
     } else if (fallback.flag == 0 && trials >= SWITCH_THRESHOLD) {
@@ -304,6 +312,8 @@ void allocate_fail(int trials) {
     } else {
         quiescent_state(FUZZY);
     }
+
+    ltd.last_flag = fallback.flag;
 }
 
 
