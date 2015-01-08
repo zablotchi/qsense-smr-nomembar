@@ -98,6 +98,7 @@ volatile ticks *total;
 volatile uint64_t putting_count_total = 0;
 volatile uint64_t getting_count_total = 0;
 volatile uint64_t removing_count_total = 0;
+volatile uint64_t allocate_fail_count_total = 0;
 
 void print_statistics(size_t duration, int num_periods);
 int all_threads_present();
@@ -205,9 +206,7 @@ test(void* thread) {
             //     nanosleep(&sleep, NULL);
             // }
 
-            if (ID == 1 && ( (n_period >= periods/6 && n_period < (2*periods)/6) || 
-                             (n_period >= (3*periods)/6 && n_period < (4*periods)/6) ||
-                              (n_period >= (5*periods)/6 && n_period < periods) )) {
+            if (ID == 1 && ((n_period/10) % 2 == 1) ) {
                 
                 sched_yield();
             } else {
@@ -727,16 +726,19 @@ void print_statistics(size_t duration, int num_periods) {
     volatile uint64_t putting_count_total_old = putting_count_total;
     volatile uint64_t getting_count_total_old = getting_count_total;
     volatile uint64_t removing_count_total_old = removing_count_total;
+    volatile uint64_t allocate_fail_count_total_old = allocate_fail_count_total;
 
     int t;
     for (t = 0; t < num_threads; t++) {
         putting_count_total += putting_count[t];
         getting_count_total += getting_count[t];
         removing_count_total += removing_count[t];
+        allocate_fail_count_total += shtd[t].allocate_fail_count;
 
         putting_count[t] = 0;
         getting_count[t] = 0;
         removing_count[t] = 0;
+        shtd[t].allocate_fail_count = 0;
         // process_callbacks_count_total += shtd[t].process_callbacks_count;
         // scan_count_total += shtd[t].scan_count;
     }
@@ -744,10 +746,12 @@ void print_statistics(size_t duration, int num_periods) {
     double throughput = (putting_count_total + getting_count_total
         + removing_count_total - putting_count_total_old - getting_count_total_old - removing_count_total_old) * 1000.0 / duration;
 
+    uint64_t allocate_fail = allocate_fail_count_total - allocate_fail_count_total_old;
+
     if (num_periods == 1) {
-        printf("#%7s%12s%10s\n", "Elapsed", "Throughput", "Mops");
+        printf("#%7s%12s%10s%15s\n", "Elapsed", "Throughput", "Mops", "Allocate fail");
     }
-    printf(" %7.1f%12.0f%10.3f\n", num_periods * duration/1000.0, throughput, throughput/1e6);
+    printf(" %7.1f%12.0f%10.3f%15d\n", num_periods * duration/1000.0, throughput, throughput/1e6, allocate_fail);
 }
 
 //verify is_present vector; if all threads are present attmpt QSBR mode again.

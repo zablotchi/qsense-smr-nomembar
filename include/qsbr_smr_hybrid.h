@@ -66,8 +66,9 @@ struct shared_thread_data {
     int in_critical;
     uint64_t process_callbacks_count;
     uint64_t scan_count;
+    uint64_t allocate_fail_count;
 
-    char padding[CACHE_LINE_SIZE - 2 * sizeof(int) - N_EPOCHS * sizeof(mr_node_t*) - 2 * sizeof(uint64_t)];
+    char padding[CACHE_LINE_SIZE - 2 * sizeof(int) - N_EPOCHS * sizeof(mr_node_t*) - 3 * sizeof(uint64_t)];
 };
 
 struct local_thread_data {

@@ -293,6 +293,7 @@ uint8_t is_old_enough(mr_node_t* n) {
 
 void allocate_fail(int trials) {
 
+    shtd[ltd.thread_index].allocate_fail_count ++;
     // if (fallback.flag == 2){
     //     //quiesce a number of times
     //     int i;
