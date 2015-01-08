@@ -67,7 +67,7 @@ struct shared_thread_data {
     uint64_t process_callbacks_count;
     uint64_t scan_count;
 
-    char padding[CACHE_LINE_SIZE - 2 * sizeof(int) - N_EPOCHS * sizeof(mr_node_t*)];
+    char padding[CACHE_LINE_SIZE - 2 * sizeof(int) - N_EPOCHS * sizeof(mr_node_t*) - 2 * sizeof(uint64_t)];
 };
 
 struct local_thread_data {
@@ -78,7 +78,7 @@ struct local_thread_data {
   uint64_t thread_index;
   uint8_t last_flag;
 
-  char padding[CACHE_LINE_SIZE - 5*sizeof(uint64_t) - sizeof(void **) - sizeof(uint8_t)];
+  char padding[CACHE_LINE_SIZE - 5 * sizeof(uint64_t) - sizeof(void **) - sizeof(uint8_t)];
 };
 
 typedef ALIGNED(CACHE_LINE_SIZE) struct shared_thread_data shared_thread_data_t;

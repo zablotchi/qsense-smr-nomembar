@@ -208,6 +208,7 @@ test(void* thread) {
             if (ID == 1 && ( (n_period >= periods/6 && n_period < (2*periods)/6) || 
                              (n_period >= (3*periods)/6 && n_period < (4*periods)/6) ||
                               (n_period >= (5*periods)/6 && n_period < periods) )) {
+                
                 sched_yield();
             } else {
 
@@ -231,7 +232,7 @@ test(void* thread) {
 
                     } else if (fallback.flag == 1) {
                         if (all_threads_present() == 1) {
-                            mr_reinitialize();
+                            // mr_reinitialize();
                             fallback.flag = 0;
                             printf("[%d] Switched to QSBR. Rcount:%d\n", ltd.thread_index, ltd.rcount);
                             for (i = 0; i < 10; i++) {
