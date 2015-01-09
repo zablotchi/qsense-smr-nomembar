@@ -319,7 +319,7 @@ void allocate_fail(int trials) {
         ltd.last_flag = 1;
         fprintf(stderr, "[%d] Switched to SMR: %d\n", ltd.thread_index, trials);
         scan();
-    } else {
+    } else { // flag == 0 and trials < SWITCH_THRESHOLD
         quiescent_state(FUZZY);
         ltd.last_flag = 0;
     }

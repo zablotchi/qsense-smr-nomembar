@@ -220,27 +220,30 @@ test(void* thread) {
                     //thread is present in the system (not delayed) 
                     is_present[ID] = 1;
                     r_count[ID] = ltd.rcount;
+                    volatile uint8_t flag = fallback.flag;
 
-                    if (ltd.last_flag == 1 && fallback.flag == 0) {
+                    if (ltd.last_flag == 1 && flag == 0) {
                         for (i = 0; i < 100; i++) {
                             quiescent_state(FUZZY);
                         }
+                        ltd.last_flag = 0;
                         printf("[%d] Quiescing before switch to QSBR from test. Rcount:%d\n", ltd.thread_index, ltd.rcount);
-                    } else if (fallback.flag == 0) { 
+                    } else if (flag == 0) { 
                         quiescent_state(FUZZY);
-
-                    } else if (fallback.flag == 1) {
+                        ltd.last_flag = 0;
+                    } else if (flag == 1) {
                         if (all_threads_present() == 1) {
                             // mr_reinitialize();
                             fallback.flag = 0;
+                            ltd.last_flag = 0;
                             printf("[%d] Switched to QSBR. Rcount:%d\n", ltd.thread_index, ltd.rcount);
                             for (i = 0; i < 10; i++) {
                                 quiescent_state(FUZZY);
                             }
                             // fallback.flag = 0;
                         }
+                        ltd.last_flag = 1; 
                     } 
-                    ltd.last_flag = fallback.flag;
                 }
 
             }
