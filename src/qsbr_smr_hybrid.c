@@ -302,25 +302,27 @@ void allocate_fail(int trials) {
     //     }
     //     fallback.flag = 0;
     //     printf("[%d] Switched to QSBR from allocate fail. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+    volatile uint8_t flag = fallback.flag;
 
-    if (ltd.last_flag == 1 && fallback.flag == 0) {
+    if (ltd.last_flag == 1 && flag == 0) {
         int i;
         for (i = 0; i < 100; i++) {
             quiescent_state(FUZZY);
         }
         printf("[%d] Quiescing before switch to QSBR from allocate_fail. Rcount:%d\n", ltd.thread_index, ltd.rcount);
-    } else if (fallback.flag == 1) {
+        ltd.last_flag = 0;
+    } else if (flag == 1) {
         scan();
-    } else if (fallback.flag == 0 && trials >= SWITCH_THRESHOLD) {
+        ltd.last_flag = 1;
+    } else if (flag == 0 && trials >= SWITCH_THRESHOLD) {
         fallback.flag = 1;
-
+        ltd.last_flag = 1;
         fprintf(stderr, "[%d] Switched to SMR: %d\n", ltd.thread_index, trials);
         scan();
     } else {
         quiescent_state(FUZZY);
+        ltd.last_flag = 0;
     }
-
-    ltd.last_flag = fallback.flag;
 }
 
 
