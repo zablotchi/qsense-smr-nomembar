@@ -212,7 +212,7 @@ test(void* thread) {
             //     nanosleep(&sleep, NULL);
             // }
 
-            if (ID == 1 && (n_period % 10) == 0) {
+            if (ID == 1 && ((n_period / 10) % 2 == 1)) {
                 
                 sched_yield();
             } else {
