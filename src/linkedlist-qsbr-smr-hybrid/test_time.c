@@ -99,6 +99,7 @@ volatile uint64_t putting_count_total = 0;
 volatile uint64_t getting_count_total = 0;
 volatile uint64_t removing_count_total = 0;
 volatile uint64_t allocate_fail_count_total = 0;
+volatile uint64_t process_callbacks_count_total = 0;
 
 void print_statistics(size_t duration, int num_periods);
 int all_threads_present();
@@ -730,7 +731,7 @@ void print_statistics(size_t duration, int num_periods) {
     volatile uint64_t getting_count_total_old = getting_count_total;
     volatile uint64_t removing_count_total_old = removing_count_total;
     volatile uint64_t allocate_fail_count_total_old = allocate_fail_count_total;
-
+    volatile uint64_t process_callbacks_count_total_old = process_callbacks_count_total;
     int t, j;
     uint64_t limbo_count = 0;
     mr_node_t* cur;
@@ -739,18 +740,19 @@ void print_statistics(size_t duration, int num_periods) {
         getting_count_total += getting_count[t];
         removing_count_total += removing_count[t];
         allocate_fail_count_total += shtd[t].allocate_fail_count;
+        process_callbacks_count_total += shtd[t].process_callbacks_count;
 
         putting_count[t] = 0;
         getting_count[t] = 0;
         removing_count[t] = 0;
         shtd[t].allocate_fail_count = 0;
-
+        shtd[t].process_callbacks_count = 0;
+        
         for (j = 0; j < 3; j++) {
             for(cur = shtd[t].limbo_list[j]; cur != NULL; cur=cur->mr_next) {
                 limbo_count++;
             }
         } 
-        // process_callbacks_count_total += shtd[t].process_callbacks_count;
         // scan_count_total += shtd[t].scan_count;
     }
 
@@ -758,11 +760,12 @@ void print_statistics(size_t duration, int num_periods) {
         + removing_count_total - putting_count_total_old - getting_count_total_old - removing_count_total_old) * 1000.0 / duration;
 
     uint64_t allocate_fail = allocate_fail_count_total - allocate_fail_count_total_old;
+    uint64_t process_callbacks = process_callbacks_count_total - process_callbacks_count_total_old;
 
     if (num_periods == 1) {
-        printf("#%7s%12s%10s%15s%12s\n", "Elapsed", "Throughput", "Mops", "Allocate fail", "Limbo count");
+        printf("#%7s%12s%10s%15s%12s%10s\n", "Elapsed", "Throughput", "Mops", "Allocate fail", "Limbo count", "Callbacks");
     }
-    printf(" %7.1f%12.0f%10.3f%15d%12d\n", num_periods * duration/1000.0, throughput, throughput/1e6, allocate_fail, limbo_count);
+    printf(" %7.1f%12.0f%10.3f%15d%12d%10d\n", num_periods * duration/1000.0, throughput, throughput/1e6, allocate_fail, limbo_count, process_callbacks);
 }
 
 //verify is_present vector; if all threads are present attmpt QSBR mode again.

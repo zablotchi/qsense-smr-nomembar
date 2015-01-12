@@ -131,7 +131,6 @@ void process_callbacks(mr_node_t **list)
 {
     mr_node_t *next;
     uint64_t num = 0;
-    shtd[ltd.thread_index].process_callbacks_count++;
     
     // write_barrier(); // IGOR why you do this?
     MEM_BARRIER;
@@ -145,6 +144,7 @@ void process_callbacks(mr_node_t **list)
         num++;
     }
 
+    shtd[ltd.thread_index].process_callbacks_count+=num;
     /* Update our accounting information. */
     ltd.rcount -= num;
 }
