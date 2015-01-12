@@ -139,6 +139,9 @@ void ssfree_alloc(unsigned int allocator, void* ptr) {
 #else
     freed_nodes++;
     ssalloc_free_num[allocator]++;
+    if (ssalloc_free_num[allocator] == (uint16_t)0) {
+        printf("Overflow!\n");
+    } 
     /* PRINT("free %3d (num_free after: %3d)", ssalloc_free_cur, ssalloc_free_num); */
     ssalloc_free_list[allocator][ssalloc_free_cur[allocator]++] = ptr;
 #endif
