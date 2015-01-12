@@ -294,30 +294,35 @@ uint8_t is_old_enough(mr_node_t* n) {
 void allocate_fail(int trials) {
 
     shtd[ltd.thread_index].allocate_fail_count ++;
-    volatile uint8_t flag = fallback.flag;
-    if (fallback.flag == 0) {
-        quiescent_state(FUZZY);
-    }
-
-    // if (ltd.last_flag == 1 && flag == 0) {
+    // if (fallback.flag == 2){
+    //     //quiesce a number of times
     //     int i;
-    //     for (i = 0; i < 100; i++) {
+    //     for (i = 0; i < 10; i++) {
     //         quiescent_state(FUZZY);
     //     }
-    //     printf("[%d] Quiescing before switch to QSBR from allocate_fail. Rcount:%d\n", ltd.thread_index, ltd.rcount);
-    //     ltd.last_flag = 0;
-    // } else if (flag == 1) {
-    //     scan();
-    //     ltd.last_flag = 1;
-    // } else if (flag == 0 && trials >= SWITCH_THRESHOLD) {
-    //     fallback.flag = 1;
-    //     ltd.last_flag = 1;
-    //     fprintf(stderr, "[%d] Switched to SMR: %d\n", ltd.thread_index, trials);
-    //     scan();
-    // } else { // flag == 0 and trials < SWITCH_THRESHOLD
-    //     quiescent_state(FUZZY);
-    //     ltd.last_flag = 0;
-    // }
+    //     fallback.flag = 0;
+    //     printf("[%d] Switched to QSBR from allocate fail. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+    volatile uint8_t flag = fallback.flag;
+
+    if (ltd.last_flag == 1 && flag == 0) {
+        int i;
+        for (i = 0; i < 100; i++) {
+            quiescent_state(FUZZY);
+        }
+        printf("[%d] Quiescing before switch to QSBR from allocate_fail. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+        ltd.last_flag = 0;
+    } else if (flag == 1) {
+        scan();
+        ltd.last_flag = 1;
+    } else if (flag == 0 && trials >= SWITCH_THRESHOLD) {
+        fallback.flag = 1;
+        ltd.last_flag = 1;
+        fprintf(stderr, "[%d] Switched to SMR: %d\n", ltd.thread_index, trials);
+        scan();
+    } else { // flag == 0 and trials < SWITCH_THRESHOLD
+        quiescent_state(FUZZY);
+        ltd.last_flag = 0;
+    }
 }
 
 
