@@ -190,6 +190,11 @@ test(void* thread) {
         // Signal from main to start
         barrier_cross(&barrier_global);
         RR_START_SIMPLE();
+
+        if (ID == 1 && n_period > 0 && n_period % 10 == 0) {
+            fallback.flag = 1 - fallback.flag;
+            printf("Switched flag to %d\n", fallback.flag);
+        }
         while (stop == 0) {
 
             // if (ID == 1 && qcount == 10) {
@@ -207,7 +212,7 @@ test(void* thread) {
             //     nanosleep(&sleep, NULL);
             // }
 
-            if (ID == 1 && ((n_period/10) % 2 == 1) ) {
+            if (ID == 1 && (n_period % 10) == 0) {
                 
                 sched_yield();
             } else {
@@ -222,33 +227,37 @@ test(void* thread) {
                     is_present[ID] = 1;
                     r_count[ID] = ltd.rcount;
                     volatile uint8_t flag = fallback.flag;
-
-                    if (ltd.last_flag == 1 && flag == 0) {
-                        for (i = 0; i < 100; i++) {
-                            quiescent_state(FUZZY);
-                        }
-                        ltd.last_flag = 0;
-                        printf("[%d] Quiescing before switch to QSBR from test. Rcount:%d\n", ltd.thread_index, ltd.rcount);
-                    } else if (flag == 0) { 
+                    if (fallback.flag == 0) {
                         quiescent_state(FUZZY);
-                        ltd.last_flag = 0;
-                    } else if (flag == 1) {
-                        if (all_threads_present() == 1) {
-                            // mr_reinitialize();
-                            fallback.flag = 0;
-                            ltd.last_flag = 0;
-                            printf("[%d] Switched to QSBR. Rcount:%d\n", ltd.thread_index, ltd.rcount);
-                            for (i = 0; i < 10; i++) {
-                                quiescent_state(FUZZY);
-                            }
-                            // fallback.flag = 0;
-                        }
-                        ltd.last_flag = 1; 
-                    } 
+                    }
+
+                    // if (ltd.last_flag == 1 && flag == 0) {
+                    //     for (i = 0; i < 100; i++) {
+                    //         quiescent_state(FUZZY);
+                    //     }
+                    //     ltd.last_flag = 0;
+                    //     printf("[%d] Quiescing before switch to QSBR from test. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+                    // } else if (flag == 0) { 
+                    //     quiescent_state(FUZZY);
+                    //     ltd.last_flag = 0;
+                    // } else if (flag == 1) {
+                    //     if (all_threads_present() == 1) {
+                    //         // mr_reinitialize();
+                    //         fallback.flag = 0;
+                    //         ltd.last_flag = 0;
+                    //         printf("[%d] Switched to QSBR. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+                    //         for (i = 0; i < 10; i++) {
+                    //             quiescent_state(FUZZY);
+                    //         }
+                    //         // fallback.flag = 0;
+                    //     }
+                    //     ltd.last_flag = 1; 
+                    // } 
                 }
 
             }
         }
+        
 
         putting_count[ID] += my_putting_count;
         getting_count[ID] += my_getting_count;
