@@ -77,6 +77,11 @@ extern uint64_t memory_reuse;
 extern uint64_t freed_nodes;
 extern shared_thread_data_t *shtd;
 extern __thread local_thread_data_t ltd;
+extern __thread uintptr_t ssalloc_app_mem[SSALLOC_NUM_ALLOCATORS];
+extern __thread size_t alloc_next[SSALLOC_NUM_ALLOCATORS];
+extern __thread void* ssalloc_free_list[SSALLOC_NUM_ALLOCATORS][65536];
+extern __thread uint16_t ssalloc_free_cur[SSALLOC_NUM_ALLOCATORS];
+extern __thread uint16_t ssalloc_free_num[SSALLOC_NUM_ALLOCATORS];
 
 TEST_VARS_GLOBAL
 ;
@@ -94,6 +99,7 @@ volatile ticks *getting_count_succ;
 volatile ticks *removing_count;
 volatile ticks *removing_count_succ;
 volatile ticks *total;
+volatile ticks *memory_owned;
 
 volatile uint64_t putting_count_total = 0;
 volatile uint64_t getting_count_total = 0;
@@ -257,6 +263,8 @@ test(void* thread) {
         my_putting_count = 0;
         my_getting_count = 0;
         my_removing_count = 0;
+
+        memory_owned[ID] = ltd.rcount + ssalloc_free_num[0] + ((SSALLOC_SIZE_SMALL - alloc_next[0])/sizeof(node_t *));
 
         // Signal to main that everybody has stopped
         barrier_cross(&barrier_global);
@@ -513,6 +521,7 @@ int main(int argc, char **argv) {
     getting_count_succ = (ticks *) calloc(num_threads, sizeof(ticks));
     removing_count = (ticks *) calloc(num_threads, sizeof(ticks));
     removing_count_succ = (ticks *) calloc(num_threads, sizeof(ticks));
+    memory_owned = (ticks *) calloc(num_threads, sizeof(ticks));
 
     // Create sleeper threads, one per core
     size_t num_cores = CORES_PER_SOCKET * NUMBER_OF_SOCKETS;
@@ -761,11 +770,24 @@ void print_statistics(size_t duration, int num_periods) {
 
     uint64_t allocate_fail = allocate_fail_count_total - allocate_fail_count_total_old;
     uint64_t process_callbacks = process_callbacks_count_total - process_callbacks_count_total_old;
+    uint64_t total_memory_owned = 0;
+    for (t = 0; t < num_threads; t++) {
+        total_memory_owned += memory_owned[t];
+    }
 
     if (num_periods == 1) {
-        printf("#%7s%12s%10s%15s%12s%10s\n", "Elapsed", "Throughput", "Mops", "Allocate fail", "Limbo count", "Callbacks");
+        printf("#%7s%12s%10s%8s%6s%10s%8s", "Elapsed", "Throughput", "Mops", "AllocF", "Limbo", "Callbacks", "TotMemO");
+        for (t = 0; t < num_threads; t++) {
+            printf("%7s %d", "Thread", t);
+        }
+        printf("\n");
     }
-    printf(" %7.1f%12.0f%10.3f%15d%12d%10d\n", num_periods * duration/1000.0, throughput, throughput/1e6, allocate_fail, limbo_count, process_callbacks);
+    printf(" %7.1f%12.0f%10.3f%8d%6d%10d%8d", num_periods * duration/1000.0, throughput, throughput/1e6, allocate_fail, limbo_count, process_callbacks, total_memory_owned);
+    for (t = 0; t < num_threads; t++) {
+        printf("%9d", memory_owned[t]);
+    }
+    printf("\n");
+
 }
 
 //verify is_present vector; if all threads are present attmpt QSBR mode again.

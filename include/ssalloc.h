@@ -20,6 +20,8 @@
 #endif
 
 #define SSALLOC_NUM_ALLOCATORS 2
+#define SSALLOC_SIZE_BIG  1024 * 1024 * 1024
+#define SSALLOC_SIZE_SMALL 64 * 1024
 
 #if defined(__sparc__)
 #  define SSALLOC_SIZE (128LL * 1024 * 1024)
@@ -30,7 +32,6 @@
 #else
 #  define SSALLOC_SIZE (1024 * 1024 * 1024)
 #endif
-
 
 void ssalloc_set(void* mem);
 void ssalloc_init();
