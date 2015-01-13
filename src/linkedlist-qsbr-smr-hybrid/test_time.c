@@ -264,7 +264,7 @@ test(void* thread) {
         my_getting_count = 0;
         my_removing_count = 0;
 
-        memory_owned[ID] = ltd.rcount + ssalloc_free_num[0] + ((SSALLOC_SIZE_SMALL - alloc_next[0])/sizeof(node_t *));
+        memory_owned[ID] = ltd.rcount + ssalloc_free_num[0] + ((SSALLOC_SIZE_SMALL - alloc_next[0])/sizeof(node_t));
 
         // Signal to main that everybody has stopped
         barrier_cross(&barrier_global);
