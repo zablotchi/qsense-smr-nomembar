@@ -777,15 +777,15 @@ void print_statistics(size_t duration, int num_periods) {
 
     if (num_periods == 1) {
         printf("#%7s%12s%10s%8s%6s%10s%8s", "Elapsed", "Throughput", "Mops", "AllocF", "Limbo", "Callbacks", "TotMemO");
-        for (t = 0; t < num_threads; t++) {
-            printf("%7s %d", "Thread", t);
-        }
+        // for (t = 0; t < num_threads; t++) {
+        //     printf("%7s %d", "Thread", t);
+        // }
         printf("\n");
     }
     printf(" %7.1f%12.0f%10.3f%8d%6d%10d%8d", num_periods * duration/1000.0, throughput, throughput/1e6, allocate_fail, limbo_count, process_callbacks, total_memory_owned);
-    for (t = 0; t < num_threads; t++) {
-        printf("%9d", memory_owned[t]);
-    }
+    // for (t = 0; t < num_threads; t++) {
+    //     printf("%9d", memory_owned[t]);
+    // }
     printf("\n");
 
 }

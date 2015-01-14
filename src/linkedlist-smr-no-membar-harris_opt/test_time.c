@@ -199,9 +199,8 @@ test(void* thread) {
             //     nanosleep(&sleep, NULL);
             // }
 
-            if (ID == 1 && ( (n_period >= periods/6 && n_period < (2*periods)/6) || 
-                             (n_period >= (3*periods)/6 && n_period < (4*periods)/6) ||
-                              (n_period >= (5*periods)/6 && n_period < periods) )) {
+            if (ID == 1 && ((n_period/10) % 2 == 1) ) {
+                
                 sched_yield();
             } else {
                 TEST_LOOP(NULL);
