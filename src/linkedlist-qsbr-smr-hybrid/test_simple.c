@@ -67,11 +67,13 @@ uint32_t rand_max;
 
 static volatile int stop;
 static volatile int wakeup_stop;
+static volatile int *is_present;
 
 static uint8_t has_sleeper_thread[NUMBER_OF_SOCKETS * CORES_PER_SOCKET];
 extern uint64_t memory_reuse;
 extern uint64_t freed_nodes;
 extern shared_thread_data_t *shtd;
+extern __thread local_thread_data_t ltd;
 
 TEST_VARS_GLOBAL
 ;
@@ -89,6 +91,8 @@ volatile ticks *getting_count_succ;
 volatile ticks *removing_count;
 volatile ticks *removing_count_succ;
 volatile ticks *total;
+
+int all_threads_present();
 
 /* ################################################################### *
  * LOCALS
@@ -119,15 +123,6 @@ test(void* thread) {
     DS_TYPE* set = td->set;
 
     PF_INIT(3, SSPFD_NUM_ENTRIES, ID);
-
-#if defined(COMPUTE_LATENCY)
-    volatile ticks my_putting_succ = 0;
-    volatile ticks my_putting_fail = 0;
-    volatile ticks my_getting_succ = 0;
-    volatile ticks my_getting_fail = 0;
-    volatile ticks my_removing_succ = 0;
-    volatile ticks my_removing_fail = 0;
-#endif
     uint64_t my_putting_count = 0;
     uint64_t my_getting_count = 0;
     uint64_t my_removing_count = 0;
@@ -135,11 +130,6 @@ test(void* thread) {
     uint64_t my_putting_count_succ = 0;
     uint64_t my_getting_count_succ = 0;
     uint64_t my_removing_count_succ = 0;
-
-#if defined(COMPUTE_LATENCY) && PFD_TYPE == 0
-    volatile ticks start_acq, end_acq;
-    volatile ticks correction = getticks_correction_calc();
-#endif
 
     seeds = seed_rand();
 
@@ -207,9 +197,33 @@ test(void* thread) {
         qcount++;
         if (qcount == QUIESCENCE_THRESHOLD) {
             qcount = 0;
-            if (fallback.flag == 0) {
+            //Signal to the other threads that 
+            //thread is present in the system (not delayed) 
+            is_present[ID] = 1;
+            volatile uint8_t flag = fallback.flag;
+
+            if (ltd.last_flag == 1 && flag == 0) {
+                for (i = 0; i < 100; i++) {
+                    quiescent_state(FUZZY);
+                }
+                ltd.last_flag = 0;
+                printf("[%d] Quiescing before switch to QSBR from test. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+            } else if (flag == 0) { 
                 quiescent_state(FUZZY);
-            }
+                ltd.last_flag = 0;
+            } else if (flag == 1) {
+                if (all_threads_present() == 1) {
+                    // mr_reinitialize();
+                    fallback.flag = 0;
+                    ltd.last_flag = 0;
+                    printf("[%d] Switched to QSBR. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+                    for (i = 0; i < 10; i++) {
+                        quiescent_state(FUZZY);
+                    }
+                    // fallback.flag = 0;
+                }
+                ltd.last_flag = 1; 
+            } 
         }
 
     }
@@ -226,14 +240,6 @@ kill_thread:
 
     barrier_cross(&barrier);
 
-#if defined(COMPUTE_LATENCY)
-    putting_succ[ID] += my_putting_succ;
-    putting_fail[ID] += my_putting_fail;
-    getting_succ[ID] += my_getting_succ;
-    getting_fail[ID] += my_getting_fail;
-    removing_succ[ID] += my_removing_succ;
-    removing_fail[ID] += my_removing_fail;
-#endif
     putting_count[ID] += my_putting_count;
     getting_count[ID] += my_getting_count;
     removing_count[ID] += my_removing_count;
@@ -270,8 +276,21 @@ void* wakeup(void * arg) {
     timeout.tv_sec = sthd->sleep_millis / 1000;
     timeout.tv_nsec = (sthd->sleep_millis % 1000) * 1000000;
 
+    int wakeup_count = 0;
     while (wakeup_stop == 0) {
+        // One of the sleeper threads periodically resets the presence vector
+            
+        if (wakeup_count == PRESENCE_RESET_THRESHOLD){
+            wakeup_count = 0;
+            if (core == 0){
+                int i;
+                for (i = 0; i < num_threads; i++){
+                    is_present[i] = 0;
+                }             
+            }            
+        } 
         nanosleep(&timeout, NULL);
+        wakeup_count ++;
     }
 
     pthread_exit(NULL);
@@ -457,6 +476,13 @@ int main(int argc, char **argv) {
     pthread_t sleeper_threads[num_cores];
     sleeper_thread_data_t* slthds = (sleeper_thread_data_t *) malloc(
             num_cores * sizeof(sleeper_thread_data_t));
+    
+    // Initialize the is_present vector
+    is_present = (int*) malloc(num_threads * sizeof(int));
+    for (i = 0; i < num_threads; i++){
+        is_present[i] = 1;
+    }
+
 
     /* Initialize and set thread detached attribute */
     pthread_attr_t attr;
@@ -573,17 +599,6 @@ int main(int argc, char **argv) {
 
     }
 
-#if defined(COMPUTE_LATENCY)
-    printf("#thread srch_suc srch_fal insr_suc insr_fal remv_suc remv_fal   ## latency (in cycles) \n"); fflush(stdout);
-    long unsigned get_suc = (getting_count_total_succ) ? getting_suc_total / getting_count_total_succ : 0;
-    long unsigned get_fal = (getting_count_total - getting_count_total_succ) ? getting_fal_total / (getting_count_total - getting_count_total_succ) : 0;
-    long unsigned put_suc = putting_count_total_succ ? putting_suc_total / putting_count_total_succ : 0;
-    long unsigned put_fal = (putting_count_total - putting_count_total_succ) ? putting_fal_total / (putting_count_total - putting_count_total_succ) : 0;
-    long unsigned rem_suc = removing_count_total_succ ? removing_suc_total / removing_count_total_succ : 0;
-    long unsigned rem_fal = (removing_count_total - removing_count_total_succ) ? removing_fal_total / (removing_count_total - removing_count_total_succ) : 0;
-    printf("%-7zu %-8lu %-8lu %-8lu %-8lu %-8lu %-8lu\n", num_threads, get_suc, get_fal, put_suc, put_fal, rem_suc, rem_fal);
-#endif
-
 #define LLU long long unsigned int
 
     int UNUSED pr = (int) (putting_count_total_succ - removing_count_total_succ);
@@ -636,4 +651,15 @@ int main(int argc, char **argv) {
     pthread_exit(NULL);
 
     return 0;
+}
+
+//verify is_present vector; if all threads are present attmpt QSBR mode again.
+int all_threads_present(){
+    int i;
+    for (i=0; i < num_threads; i++){
+        if (is_present[i] == 0){
+            return 0;
+        }
+    }
+    return 1;
 }
