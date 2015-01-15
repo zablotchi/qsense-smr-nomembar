@@ -10,6 +10,7 @@
 40      4166242     24.08   9.63        2990427     18.13   7.25        2962937     27.84   11.14   
 80      3323483     9.61    7.68        3076370     9.32    7.46        3039246     14.28   11.42 
 
+
 # hyperthreads: 0,1,..9,20,21,..,29,10,..
 #       ./bin/lf-ll_hybrid_harris_opt   ./bin/lf-ll_qsbr_harris_opt     ./bin/lf-ll_smr_no_membar_harris_opt
 #cores  throughput  %linear scalability throughput  %linear scalability throughput  %linear scalability
@@ -21,6 +22,7 @@
 20      1218728     14.27   2.85        1154916     13.80   2.76        2113219     39.65   7.93    
 40      3604907     21.11   8.44        2912537     17.40   6.96        2964453     27.81   11.12   
 80      3188737     9.34    7.47        3245999     9.70    7.76        3267762     15.33   12.26
+
 
 # alternate: 0,10,1,11...
 #       ./bin/lf-ll_hybrid_harris_opt   ./bin/lf-ll_qsbr_harris_opt     ./bin/lf-ll_smr_no_membar_harris_opt
