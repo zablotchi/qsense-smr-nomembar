@@ -28,7 +28,7 @@
 
 #define N_EPOCHS 3
 
-#define QUIESCENCE_THRESHOLD 100
+#define QUIESCENCE_THRESHOLD 1000
 
 #define MAX_EXIT_RETRIES 100 * qad.nthreads
 
