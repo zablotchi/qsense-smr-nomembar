@@ -383,7 +383,10 @@ void manage_hybrid_state(){
 int all_threads_present(){
     int i;
     for (i=0; i < ltd.nthreads; i++){
-        if (shtd[i].is_present == 0){
+        //if (shtd[i].is_present == 0){
+        //    return 0;
+        //}
+        if (is_present_vect[i] == 0){
             return 0;
         }
     }
