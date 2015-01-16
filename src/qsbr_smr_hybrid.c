@@ -20,6 +20,8 @@ inline int ssearch(void **list, size_t size, void *key);
 void reset_presence();
 int all_threads_present();
 
+volatile uint8_t *is_present_vect;
+
 void mr_init_local(uint64_t thread_index, uint64_t nthreads) {
     ltd.thread_index = thread_index;
     ltd.nthreads = nthreads;
@@ -43,7 +45,7 @@ void mr_init_global(uint64_t nthreads) {
         shtd[i].in_critical = 1;
         shtd[i].process_callbacks_count = 0;
         shtd[i].scan_count = 0;
-        shtd[i].is_present = 1;
+        //shtd[i].is_present = 1;
         for (j = 0; j < N_EPOCHS; j++)
             shtd[i].limbo_list[j] = NULL;
     }
@@ -52,6 +54,11 @@ void mr_init_global(uint64_t nthreads) {
 
     for (i = 0; i < K*(nthreads); i++) {
         HP[i].p = NULL;
+    }
+
+    is_present_vect = (uint8_t*) malloc(sizeof(uint8_t) * nthreads);
+    for (i = 0; i < nthreads; i++) {
+        is_present_vect[i] = 1;
     }
 
     fallback.flag = 0;
@@ -340,8 +347,10 @@ void allocate_fail(int trials) {
 void manage_hybrid_state(){
     //Signal to the other threads that 
     //thread is present in the system (not delayed) 
-    shtd[ltd.thread_index].is_present = 1;
-    MEM_BARRIER;
+
+    //shtd[ltd.thread_index].is_present = 1;
+    is_present_vect[ltd.thread_index] = 1;
+
     //r_count[ltd.thread_index] = ltd.rcount;
     volatile uint8_t flag = fallback.flag;
 
@@ -414,6 +423,7 @@ inline int ssearch(void **list, size_t size, void *key) {
 void reset_presence(){    
     int i;
     for (i = 0; i < ltd.nthreads; i++){
-        shtd[i].is_present = 0;
+        //shtd[i].is_present = 0;
+        is_present_vect[i] = 0;
     }  
 }

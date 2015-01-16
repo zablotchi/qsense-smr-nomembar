@@ -42,7 +42,7 @@ void* wakeup(void * arg) {
         if (core == 0){
 
         	maintenance_func();
-        	MEM_BARRIER;           
+        	//MEM_BARRIER;           
                   
         } 
         nanosleep(&timeout, NULL);
