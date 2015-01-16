@@ -19,6 +19,7 @@ uint8_t is_old_enough(mr_node_t* n);
 inline int ssearch(void **list, size_t size, void *key);
 void reset_presence();
 int all_threads_present();
+int nthreads_;
 
 volatile uint8_t *is_present_vect;
 
@@ -34,6 +35,7 @@ void mr_init_local(uint64_t thread_index, uint64_t nthreads) {
 void mr_init_global(uint64_t nthreads) {
     int i, j;
     
+    nthreads_ = nthreads;
     qg = (struct qsbr_globals *) malloc(sizeof(struct qsbr_globals));
     qg->global_epoch = 1;
     INIT_LOCK(&(qg->update_lock));
@@ -426,22 +428,22 @@ inline int ssearch(void **list, size_t size, void *key) {
 void reset_presence(){    
     int i;
 
-    printf("RESET PRESENCE\n");
+    // printf("RESET PRESENCE\n");
 
-    for (i = 0; i < ltd.nthreads; i++){
-        //shtd[i].is_present = 0;
-        printf("BEFORE: %d ", is_present_vect[i]);
-    } 
-    printf("\n");
+    // for (i = 0; i < ltd.nthreads; i++){
+    //     //shtd[i].is_present = 0;
+    //     printf("BEFORE: %d ", is_present_vect[i]);
+    // } 
+    // printf("\n");
 
-    for (i = 0; i < ltd.nthreads; i++){
+    for (i = 0; i < nthreads_; i++){
         //shtd[i].is_present = 0;
         is_present_vect[i] = 0;
     }  
 
-    for (i = 0; i < ltd.nthreads; i++){
-        //shtd[i].is_present = 0;
-        printf("AFTER: %d ", is_present_vect[i]);
-    } 
-    printf("\n");
+    // for (i = 0; i < ltd.nthreads; i++){
+    //     //shtd[i].is_present = 0;
+    //     printf("AFTER: %d ", is_present_vect[i]);
+    // } 
+    // printf("\n");
 }
