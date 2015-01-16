@@ -17,6 +17,9 @@ measurements.o:
 ssalloc.o:
 	$(CC) $(CFLAGS) -c -o $(BUILDIR)/ssalloc.o $(PROF)/ssalloc.c
 
+sleeper_threads.o:
+	$(CC) $(CFLAGS) -c -o $(BUILDIR)/sleeper_threads.o $(PROF)/sleeper_threads.c
+
 qsbr_smr_hybrid.o:
 	$(CC) $(CFLAGS) -c -o $(BUILDIR)/qsbr_smr_hybrid.o $(PROF)/qsbr_smr_hybrid.c
 
@@ -32,8 +35,8 @@ intset.o: linkedlist.h harris.h
 test.o: linkedlist.h harris.h intset.h
 	$(CC) $(CFLAGS) -c -o $(BUILDIR)/test.o $(TEST_FILE)
 
-main: measurements.o ssalloc.o linkedlist.o harris.o harris.o intset.o test.o qsbr_smr_hybrid.o $(TMILB)
-	$(CC) $(CFLAGS) $(BUILDIR)/measurements.o $(BUILDIR)/ssalloc.o $(BUILDIR)/linkedlist.o $(BUILDIR)/harris.o $(BUILDIR)/intset.o $(BUILDIR)/test.o $(BUILDIR)/qsbr_smr_hybrid.o -o $(BINS) $(LDFLAGS)
+main: measurements.o ssalloc.o linkedlist.o harris.o harris.o intset.o test.o qsbr_smr_hybrid.o sleeper_threads.o $(TMILB)
+	$(CC) $(CFLAGS) $(BUILDIR)/measurements.o $(BUILDIR)/ssalloc.o $(BUILDIR)/linkedlist.o $(BUILDIR)/harris.o $(BUILDIR)/intset.o $(BUILDIR)/test.o $(BUILDIR)/qsbr_smr_hybrid.o $(BUILDIR)/sleeper_threads.o -o $(BINS) $(LDFLAGS)
 
 clean:
 	-rm -f $(BINS)

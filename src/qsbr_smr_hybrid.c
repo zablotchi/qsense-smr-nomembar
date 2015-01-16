@@ -8,7 +8,6 @@
 #include "lock_if.h"
 #include "linkedlist-qsbr-smr-hybrid/linkedlist.h"
 
-
 struct qsbr_globals *qg ALIGNED(CACHE_LINE_SIZE);
 
 shared_thread_data_t *shtd;
@@ -18,6 +17,7 @@ __thread local_thread_data_t ltd;
 int compare (const void *a, const void *b);
 uint8_t is_old_enough(mr_node_t* n);
 inline int ssearch(void **list, size_t size, void *key);
+void reset_presence();
 
 void mr_init_local(uint64_t thread_index, uint64_t nthreads) {
     ltd.thread_index = thread_index;
@@ -42,6 +42,7 @@ void mr_init_global(uint64_t nthreads) {
         shtd[i].in_critical = 1;
         shtd[i].process_callbacks_count = 0;
         shtd[i].scan_count = 0;
+        shtd[i].is_present = 1;
         for (j = 0; j < N_EPOCHS; j++)
             shtd[i].limbo_list[j] = NULL;
     }
@@ -53,7 +54,15 @@ void mr_init_global(uint64_t nthreads) {
     }
 
     fallback.flag = 0;
+
+    //TODO SLEEPER create sleeper threads
+    init_sleeper_threads(nthreads, reset_presence);
     
+}
+
+void mr_exit_global(){
+    //TODO SLEEPER join sleeper threads
+    join_sleeper_threads();
 }
 
 void mr_thread_exit()
@@ -76,6 +85,8 @@ void mr_thread_exit()
     }
 
     // printf("Scan count = %d; Retries = %d\n", shtd[ltd.thread_index].scan_count, retries);
+
+
 }
 
 void mr_reinitialize()
@@ -353,4 +364,11 @@ inline int ssearch(void **list, size_t size, void *key) {
       }
     }
     return 0;
+}
+
+void reset_presence(){    
+    int i;
+    for (i = 0; i < ltd.nthreads; i++){
+        shtd[i].is_present = 0;
+    }  
 }

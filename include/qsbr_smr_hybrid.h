@@ -3,6 +3,7 @@
 
 #include "mr.h"
 #include "lock_if.h"
+#include "sleeper_threads.h"
 
 // QSBR STUFF
 #define FUZZY 0
@@ -11,11 +12,9 @@
 #define N_EPOCHS 3
 #define QUIESCENCE_THRESHOLD 1000
 #define SWITCH_THRESHOLD 10
-#define PRESENCE_RESET_THRESHOLD 1
+// #define PRESENCE_RESET_THRESHOLD 1
 
-// How many milliseconds should the sleeper threads sleep
-#define SLEEP_AMOUNT 150
-#define MARGIN 50
+
 
 // SMR STUFF
 
@@ -46,10 +45,10 @@ typedef ALIGNED(CACHE_LINE_SIZE) struct hazard_pointer hazard_pointer_t;
 
 /* Must be dynamically initialized to be an array of size H. */
 hazard_pointer_t *HP;
- 
+
 struct qsbr_globals {
     ptlock_t update_lock ALIGNED(CACHE_LINE_SIZE);
-    int global_epoch ALIGNED(CACHE_LINE_SIZE);
+    uint8_t global_epoch ALIGNED(CACHE_LINE_SIZE);
     // OANA IGOR Should we pad here? It's not clear how big the padding should be...
 };
 
@@ -62,13 +61,15 @@ struct shared_thread_data {
      *  epoch: the local epoch
      */
     mr_node_t *limbo_list [N_EPOCHS];
-    int epoch;
-    int in_critical;
+    uint8_t epoch;
+    uint8_t in_critical;
+    uint8_t is_present;
     uint64_t process_callbacks_count;
     uint64_t scan_count;
     uint64_t allocate_fail_count;
 
-    char padding[CACHE_LINE_SIZE - 2 * sizeof(int) - N_EPOCHS * sizeof(mr_node_t*) - 3 * sizeof(uint64_t)];
+
+    char padding[CACHE_LINE_SIZE - 3 * sizeof(uint8_t) - N_EPOCHS * sizeof(mr_node_t*) - 3 * sizeof(uint64_t)];
 };
 
 struct local_thread_data {
