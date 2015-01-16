@@ -41,7 +41,8 @@ void* wakeup(void * arg) {
             
         if (core == 0){
 
-        	maintenance_func();           
+        	maintenance_func();
+        	MEM_BARRIER;           
                   
         } 
         nanosleep(&timeout, NULL);
@@ -111,7 +112,7 @@ void join_sleeper_threads(){
             exit(-1);
         }
     }
-    
+
     free(slthds);
     free(sleeper_threads);
 

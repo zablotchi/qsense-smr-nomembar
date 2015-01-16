@@ -341,6 +341,7 @@ void manage_hybrid_state(){
     //Signal to the other threads that 
     //thread is present in the system (not delayed) 
     shtd[ltd.thread_index].is_present = 1;
+    MEM_BARRIER;
     //r_count[ltd.thread_index] = ltd.rcount;
     volatile uint8_t flag = fallback.flag;
 
