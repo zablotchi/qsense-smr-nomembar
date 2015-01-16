@@ -214,7 +214,7 @@ test(void* thread) {
             } else {
 
                 TEST_LOOP(NULL);
-
+                
                 qcount++;
                 if (qcount == QUIESCENCE_THRESHOLD) {
                     qcount = 0;

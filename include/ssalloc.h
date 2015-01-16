@@ -21,7 +21,7 @@
 
 #define SSALLOC_NUM_ALLOCATORS 2
 #define SSALLOC_SIZE_BIG  1024 * 1024 * 1024
-#define SSALLOC_SIZE_SMALL 1024 * 1024 * 1024
+#define SSALLOC_SIZE_SMALL 512 * 1024
 
 #if defined(__sparc__)
 #  define SSALLOC_SIZE (128LL * 1024 * 1024)

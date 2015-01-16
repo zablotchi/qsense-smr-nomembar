@@ -40,10 +40,7 @@ void* wakeup(void * arg) {
         // One of the sleeper threads periodically resets the presence vector
             
         if (core == 0){
-
         	maintenance_func();
-        	//MEM_BARRIER;           
-                  
         } 
         nanosleep(&timeout, NULL);
     }
@@ -65,6 +62,8 @@ void init_sleeper_threads(int worker_threads, void (*func)(void)){
     	num_sleeper_threads = num_cores;
     }
     
+    printf("num_sleeper_threads %d\n", num_sleeper_threads);
+
     sleeper_threads = (pthread_t *) malloc(num_sleeper_threads * sizeof(pthread_t));
     slthds = (sleeper_thread_data_t *) malloc(
             num_sleeper_threads * sizeof(sleeper_thread_data_t));
