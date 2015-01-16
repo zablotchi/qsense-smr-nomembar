@@ -65,7 +65,7 @@ uint32_t rand_max;
 #define rand_min 1
 
 static volatile int stop, final_stop;
-static volatile int *r_count;
+//static volatile int *r_count;
 
 
 extern uint64_t memory_reuse;
@@ -218,34 +218,7 @@ test(void* thread) {
                 qcount++;
                 if (qcount == QUIESCENCE_THRESHOLD) {
                     qcount = 0;
-                    //Signal to the other threads that 
-                    //thread is present in the system (not delayed) 
-                    shtd[ID].is_present = 1;
-                    r_count[ID] = ltd.rcount;
-                    volatile uint8_t flag = fallback.flag;
-
-                    if (ltd.last_flag == 1 && flag == 0) {
-                        for (i = 0; i < 100; i++) {
-                            quiescent_state(FUZZY);
-                        }
-                        ltd.last_flag = 0;
-                        printf("[%d] Quiescing before switch to QSBR from test. Rcount:%d\n", ltd.thread_index, ltd.rcount);
-                    } else if (flag == 0) { 
-                        quiescent_state(FUZZY);
-                        ltd.last_flag = 0;
-                    } else if (flag == 1) {
-                        if (all_threads_present() == 1) {
-                            // mr_reinitialize();
-                            fallback.flag = 0;
-                            ltd.last_flag = 0;
-                            printf("[%d] Switched to QSBR. Rcount:%d\n", ltd.thread_index, ltd.rcount);
-                            for (i = 0; i < 10; i++) {
-                                quiescent_state(FUZZY);
-                            }
-                            // fallback.flag = 0;
-                        }
-                        ltd.last_flag = 1; 
-                    } 
+                    manage_hybrid_state();
                 }
 
             }
@@ -483,10 +456,10 @@ int main(int argc, char **argv) {
 
 
     //Initialize the rcount vector
-    r_count = (int*) malloc(num_threads * sizeof(int));
+/*    r_count = (int*) malloc(num_threads * sizeof(int));
     for (i = 0; i < num_threads; i++){
         r_count[i] = 0;
-    }
+    }*/
 
     /* Initialize and set thread detached attribute */
     pthread_attr_t attr;
@@ -708,13 +681,3 @@ void print_statistics(size_t duration, int num_periods) {
 
 }
 
-//verify is_present vector; if all threads are present attmpt QSBR mode again.
-int all_threads_present(){
-    int i;
-    for (i=0; i < num_threads; i++){
-        if (shtd[i].is_present == 0){
-            return 0;
-        }
-    }
-    return 1;
-}

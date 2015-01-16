@@ -18,6 +18,7 @@ int compare (const void *a, const void *b);
 uint8_t is_old_enough(mr_node_t* n);
 inline int ssearch(void **list, size_t size, void *key);
 void reset_presence();
+int all_threads_present();
 
 void mr_init_local(uint64_t thread_index, uint64_t nthreads) {
     ltd.thread_index = thread_index;
@@ -334,6 +335,49 @@ void allocate_fail(int trials) {
         quiescent_state(FUZZY);
         ltd.last_flag = 0;
     }
+}
+
+void manage_hybrid_state(){
+    //Signal to the other threads that 
+    //thread is present in the system (not delayed) 
+    shtd[ltd.thread_index].is_present = 1;
+    //r_count[ltd.thread_index] = ltd.rcount;
+    volatile uint8_t flag = fallback.flag;
+
+    int i;
+    if (ltd.last_flag == 1 && flag == 0) {
+        for (i = 0; i < 100; i++) {
+            quiescent_state(FUZZY);
+        }
+        ltd.last_flag = 0;
+        printf("[%d] Quiescing before switch to QSBR from test. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+    } else if (flag == 0) { 
+        quiescent_state(FUZZY);
+        ltd.last_flag = 0;
+    } else if (flag == 1) {
+        if (all_threads_present() == 1) {
+            // mr_reinitialize();
+            fallback.flag = 0;
+            ltd.last_flag = 0;
+            printf("[%d] Switched to QSBR. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+            for (i = 0; i < 10; i++) {
+                quiescent_state(FUZZY);
+            }
+            // fallback.flag = 0;
+        }
+        ltd.last_flag = 1; 
+    }
+}
+
+//Verify if all threads are currently active in the system
+int all_threads_present(){
+    int i;
+    for (i=0; i < ltd.nthreads; i++){
+        if (shtd[i].is_present == 0){
+            return 0;
+        }
+    }
+    return 1;
 }
 
 

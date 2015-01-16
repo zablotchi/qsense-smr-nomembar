@@ -90,6 +90,8 @@ void scan();
 
 void quiescent_state (int flag);
 
+void manage_hybrid_state();
+
 void free_node_later(void *);
 
 //Called when impossible to allocate node; triggers switch to SMR.
