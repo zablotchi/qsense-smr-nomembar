@@ -75,7 +75,6 @@ void init_sleeper_threads(int worker_threads, void (*func)(void)){
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
 
-	// Initially, no core has a sleeper on it
     int t, rc;
 
     for (t = 0; t < num_sleeper_threads; t++) {

@@ -425,8 +425,23 @@ inline int ssearch(void **list, size_t size, void *key) {
 
 void reset_presence(){    
     int i;
+
+    printf("RESET PRESENCE\n");
+
+    for (i = 0; i < ltd.nthreads; i++){
+        //shtd[i].is_present = 0;
+        printf("BEFORE: %d ", is_present_vect[i]);
+    } 
+    printf("\n");
+
     for (i = 0; i < ltd.nthreads; i++){
         //shtd[i].is_present = 0;
         is_present_vect[i] = 0;
     }  
+
+    for (i = 0; i < ltd.nthreads; i++){
+        //shtd[i].is_present = 0;
+        printf("AFTER: %d ", is_present_vect[i]);
+    } 
+    printf("\n");
 }
