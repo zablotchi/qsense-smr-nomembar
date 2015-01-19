@@ -7,8 +7,6 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <time.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <errno.h>
 #include <string.h>
 #include <sched.h>
@@ -67,9 +65,7 @@ uint32_t rand_max;
 #define rand_min 1
 
 static volatile int stop, final_stop;
-static volatile int wakeup_stop;
 
-static uint8_t has_sleeper_thread[NUMBER_OF_SOCKETS * CORES_PER_SOCKET];
 extern uint64_t memory_reuse;
 extern uint64_t freed_nodes;
 
@@ -252,29 +248,6 @@ kill_thread:
     pthread_exit(NULL);
 }
 
-typedef struct sleeper_thread_data {
-    uint32_t target_core;
-    uint32_t sleep_millis;
-} sleeper_thread_data_t;
-
-void* wakeup(void * arg) {
-
-    sleeper_thread_data_t* sthd = (sleeper_thread_data_t*) arg;
-    uint32_t core = sthd->target_core;
-    int phys_id = the_cores[core];
-    set_cpu(phys_id);
-
-    struct timespec timeout;
-    timeout.tv_sec = sthd->sleep_millis / 1000;
-    timeout.tv_nsec = (sthd->sleep_millis % 1000) * 1000000;
-
-    while (wakeup_stop == 0) {
-        nanosleep(&timeout, NULL);
-    }
-
-    pthread_exit(NULL);
-}
-
 
 int main(int argc, char **argv) {
     set_cpu(the_cores[0]);
@@ -436,8 +409,6 @@ int main(int argc, char **argv) {
 
     stop = 0;
     final_stop = 0;
-    wakeup_stop = 0;
-
 
     DS_TYPE* set = DS_NEW();
     mr_init_global(num_threads);
@@ -458,22 +429,10 @@ int main(int argc, char **argv) {
     removing_count = (ticks *) calloc(num_threads, sizeof(ticks));
     removing_count_succ = (ticks *) calloc(num_threads, sizeof(ticks));
 
-    // Create sleeper threads, one per core
-    size_t num_cores = CORES_PER_SOCKET * NUMBER_OF_SOCKETS;
-    pthread_t sleeper_threads[num_cores];
-    sleeper_thread_data_t* slthds = (sleeper_thread_data_t *) malloc(
-            num_cores * sizeof(sleeper_thread_data_t));
-
     /* Initialize and set thread detached attribute */
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-
-    // Initially, no core has a sleeper on it
-    long t;
-    for (t = 0; t < num_cores; t++) {
-        has_sleeper_thread[t] = 0;
-    }
 
     pthread_t threads[num_threads];
     int rc;
@@ -485,22 +444,10 @@ int main(int argc, char **argv) {
     thread_data_t* tds = (thread_data_t*) malloc(
             num_threads * sizeof(thread_data_t));
 
+    int t;
     for (t = 0; t < num_threads; t++) {
         tds[t].id = t;
         tds[t].set = set;
-
-        if (!has_sleeper_thread[t % num_cores]) {
-            has_sleeper_thread[t % num_cores] = 1;
-
-            // create sleeper thread
-            slthds[t].target_core = t;
-            slthds[t].sleep_millis = SLEEP_AMOUNT;
-            if (pthread_create(&sleeper_threads[t % num_cores], &attr, wakeup,
-                    slthds + (t % num_cores))) {
-                printf("ERROR; return code from pthread_create() is %d\n", rc);
-                exit(-1);
-            }
-        }
 
         rc = pthread_create(&threads[t], &attr, test, tds + t);
         if (rc) {
@@ -554,19 +501,8 @@ int main(int argc, char **argv) {
         }
     }
 
-    // join sleeper threads here
-    wakeup_stop = 1;
-    for (t = 0; t < num_cores; t++) {
-        if (has_sleeper_thread[t]
-                && pthread_join(sleeper_threads[t], &status)) {
-
-            printf("ERROR; return code from pthread_join() is %d\n", rc);
-            exit(-1);
-        }
-    }
-
     free(tds);
-    free(slthds);
+    mr_exit_global();
 
     volatile ticks putting_suc_total = 0;
     volatile ticks putting_fal_total = 0;

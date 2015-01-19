@@ -22,6 +22,7 @@
 // #include "util.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "sleeper_threads.h"
 #include "linkedlist-smr-no-membar-harris_opt/linkedlist.h"
 
 // IGOR: SSALLOC allocator convention:
@@ -31,6 +32,7 @@
 __thread smr_data_t sd;
 
 uint8_t is_old_enough(mr_node_t* n);
+void do_nothing() {}
 
 void mr_init_global(uint64_t nthreads){
   /* Allocate HP array. Over-allocate since the parent has pid 32. */
@@ -45,6 +47,8 @@ void mr_init_global(uint64_t nthreads){
   int i;
   for (i = 0; i < K*(nthreads); i++)
     HP[i].p = NULL;
+
+  init_sleeper_threads(nthreads, do_nothing);
 }
 
 void mr_init_local(uint64_t thread_index, uint64_t nthreads){
@@ -71,6 +75,11 @@ void mr_thread_exit()
         sched_yield();
         retries++;
     }
+}
+
+void mr_exit_global(){
+    //TODO SLEEPER join sleeper threads
+    join_sleeper_threads();
 }
 
 void mr_reinitialize()

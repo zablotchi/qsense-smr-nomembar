@@ -87,8 +87,6 @@ volatile ticks *removing_count;
 volatile ticks *removing_count_succ;
 volatile ticks *total;
 
-int all_threads_present();
-
 /* ################################################################### *
  * LOCALS
  * ################################################################### */
