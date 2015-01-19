@@ -104,6 +104,31 @@ lbsl_herlihy_lb:
 
 sl:	seqsl lfsl_fraser lfsl_herlihy_lf lbsl_pugh lbsl_string_pugh lbsl_herlihy_lb
 
+# OUR TARGETS
+smr:
+	$(MAKE) "STM=LOCKFREE" "GC=0" "INIT=one" src/linkedlist-smr-harris_opt	
+qsbr:
+	$(MAKE) "LOCK=TICKET" "GC=0" "INIT=one" src/linkedlist-qsbr-harris_opt
+smr_no_membar:
+	$(MAKE) "STM=LOCKFREE" "GC=0" "INIT=one" src/linkedlist-smr-no-membar-harris_opt
+smr_no_membar_igor:
+	$(MAKE) "STM=LOCKFREE" "GC=0" "INIT=one" src/linkedlist-smr-no-membar-igor_opt/
+hybrid:
+	$(MAKE) "GC=0" "LOCK=TICKET" "INIT=one" src/linkedlist-qsbr-smr-hybrid
+smr_lazy:
+	$(MAKE) "GC=0" "STM=LOCKFREE" "INIT=one" src/linkedlist-smr-lazy	
+lfll_mr: smr qsbr smr_no_membar smr_no_membar_igor hybrid smr_lazy
+
+	
+time-qsbr:
+	$(MAKE) "LOCK=TICKET" "GC=0" "INIT=one" "TEST=time" src/linkedlist-qsbr-harris_opt
+time-smr_no_membar:
+	$(MAKE) "STM=LOCKFREE" "GC=0" "INIT=one" "TEST=time" src/linkedlist-smr-no-membar-harris_opt
+time-hybrid:
+	$(MAKE) "GC=0" "LOCK=TICKET" "INIT=one" "TEST=time" src/linkedlist-qsbr-smr-hybrid
+time-lfll_mr: time-qsbr time-smr_no_membar time-hybrid
+
+
 
 lfll_harris:
 	$(MAKE) "STM=LOCKFREE" src/linkedlist
@@ -114,17 +139,8 @@ lfll_qsbr_harris:
 lfll_smr_harris:
 	$(MAKE) "GC=0" "STM=LOCKFREE" src/linkedlist-smr
 
-lfll_smr_lazy:
-	$(MAKE) "GC=0" "STM=LOCKFREE" "INIT=one" src/linkedlist-smr-lazy	
-
 lfll_harris_opt:
 	$(MAKE) "STM=LOCKFREE" src/linkedlist-harris_opt
-	
-lfll_smr_harris_opt:
-	$(MAKE) "STM=LOCKFREE" "GC=0" "INIT=one" src/linkedlist-smr-harris_opt	
-
-lfll_qsbr_harris_opt:
-	$(MAKE) "LOCK=TICKET" "GC=0" "INIT=one" src/linkedlist-qsbr-harris_opt
 
 malloc_compare: lfll_harris_opt lfll_harris_opt_tcmalloc lfll_harris_opt_jemalloc
 
@@ -146,17 +162,10 @@ lfll_smr_hart:
 lfll_smr_no_membar:
 	$(MAKE) "STM=LOCKFREE" "GC=0" src/linkedlist-smr-no-membar	
 
-lfll_smr_no_membar_harris_opt:
-	$(MAKE) "STM=LOCKFREE" "GC=0" "INIT=one" src/linkedlist-smr-no-membar-harris_opt
-
-lfll_smr_no_membar_igor_opt:
-	$(MAKE) "STM=LOCKFREE" "GC=0" src/linkedlist-smr-no-membar-igor_opt/
 
 lfll_hart_qsbr:
 	$(MAKE) "GC=0" "LOCK=TICKET" src/linkedlist-qsbr-hart
 
-lfll_hybrid_harris_opt:
-	$(MAKE) "GC=0" "LOCK=TICKET" "INIT=one" "TEST=time" src/linkedlist-qsbr-smr-hybrid
 
 seqll:
 	$(MAKE) "STM=SEQUENTIAL" "SEQ_NO_FREE=1" src/linkedlist-seq
@@ -164,7 +173,6 @@ seqll:
 seqllgc:
 	$(MAKE) "STM=SEQUENTIAL" "GC=1" src/linkedlist-seq
 
-lfll_mr: lfll_smr_lazy lfll_smr_harris_opt lfll_qsbr_harris_opt lfll_smr_no_membar_harris_opt lfll_smr_no_membar_igor_opt lfll_hybrid_harris_opt
 
 lfll: lfll_harris lfll_michael lfll_harris_opt
 
