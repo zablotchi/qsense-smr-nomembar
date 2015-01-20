@@ -31,7 +31,7 @@
 
 __thread smr_data_t sd;
 __thread uint64_t HP_cur;
-
+__thread uint64_t reclaimed_count;
 void rotation();
 
 
@@ -60,6 +60,7 @@ void mr_init_local(uint8_t thread_index, uint8_t nthreads){
   sd.nthreads = nthreads;
   sd.plist = (void **) malloc(sizeof(void *) * K * sd.nthreads);
   HP_cur = 0;
+  reclaimed_count = 0;
 
 }
 
@@ -71,7 +72,7 @@ void mr_thread_exit()
     for (i = 0; i < K; i++)
         HP[K * sd.thread_index + i].p = NULL;
     
-    printf("mr_thread_exit: rlist size %d\n", sd.rlist->size);
+    printf("mr_thread_exit: rlist size %d, reclaimed_count %d\n", sd.rlist->size, reclaimed_count);
     while (sd.rcount > 0) {
         scan();
         sched_yield();
@@ -209,7 +210,7 @@ void free_node_later(void *n)
 
 void rotation(){
 
-  printf("rotation: rlist size %d\n", sd.rlist->size);
+  //printf("rotation: rlist size %d\n", sd.rlist->size);
 
   //verify current HP and mark corresponding node
   node_t* cur_HP_node = (node_t*)(HP[HP_cur].p);
@@ -239,6 +240,7 @@ void rotation(){
     ssfree_alloc(1, rlist_tail_mr);
     
     //decrease rcount
+    reclaimed_count++;
     sd.rcount--;
   }
     
