@@ -67,7 +67,6 @@ uint32_t rand_max;
 
 static volatile int stop;
 
-static uint8_t has_sleeper_thread[NUMBER_OF_SOCKETS * CORES_PER_SOCKET];
 extern uint64_t memory_reuse;
 extern uint64_t freed_nodes;
 
