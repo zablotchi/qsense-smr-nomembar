@@ -71,6 +71,7 @@ void mr_thread_exit()
     for (i = 0; i < K; i++)
         HP[K * sd.thread_index + i].p = NULL;
     
+    printf("mr_thread_exit: rlist size %d\n", sd.rlist->size);
     while (sd.rcount > 0) {
         scan();
         sched_yield();
@@ -195,7 +196,7 @@ void free_node_later(void *n)
         //Add to rlist
         add_to_head(sd.rlist, wrapper_node);
         sd.rcount++;
-      
+
 
     }
 
@@ -207,6 +208,9 @@ void free_node_later(void *n)
 }
 
 void rotation(){
+
+  printf("rotation: rlist size %d\n", sd.rlist->size);
+
   //verify current HP and mark corresponding node
   node_t* cur_HP_node = (node_t*)(HP[HP_cur].p);
 
@@ -224,7 +228,8 @@ void rotation(){
     rlist_tail->marked = 0;
     //remove it from rlist tail
     //add it to rlist head
-    add_to_head(sd.rlist, remove_from_tail(sd.rlist));
+    mr_node_t* rlist_tail_mr = remove_from_tail(sd.rlist);
+    add_to_head(sd.rlist, rlist_tail_mr);
     
   } else { //tail is unmarked
     //free the memory
