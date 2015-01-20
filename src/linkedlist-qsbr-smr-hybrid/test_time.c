@@ -95,6 +95,7 @@ volatile ticks *removing_count;
 volatile ticks *removing_count_succ;
 volatile ticks *total;
 volatile ticks *memory_owned;
+volatile ticks *r_count_;
 
 volatile uint64_t putting_count_total = 0;
 volatile uint64_t getting_count_total = 0;
@@ -233,6 +234,7 @@ test(void* thread) {
         my_removing_count = 0;
 
         memory_owned[ID] = ltd.rcount + ssalloc_free_num[0] + ((SSALLOC_SIZE_SMALL - alloc_next[0])/sizeof(node_t));
+        r_count_[ID] = ltd.rcount;
 
         // Signal to main that everybody has stopped
         barrier_cross(&barrier_global);
@@ -453,6 +455,8 @@ int main(int argc, char **argv) {
     removing_count = (ticks *) calloc(num_threads, sizeof(ticks));
     removing_count_succ = (ticks *) calloc(num_threads, sizeof(ticks));
     memory_owned = (ticks *) calloc(num_threads, sizeof(ticks));
+    r_count_ = (ticks *) calloc(num_threads, sizeof(ticks));
+
 
 
     //Initialize the rcount vector
@@ -656,18 +660,20 @@ void print_statistics(size_t duration, int num_periods) {
     uint64_t allocate_fail = allocate_fail_count_total - allocate_fail_count_total_old;
     uint64_t process_callbacks = process_callbacks_count_total - process_callbacks_count_total_old;
     uint64_t total_memory_owned = 0;
+    uint64_t total_rcount = 0;
     for (t = 0; t < num_threads; t++) {
         total_memory_owned += memory_owned[t];
+        total_rcount += r_count_[t];
     }
 
     if (num_periods == 1) {
-        printf("#%7s%12s%10s%8s%10s%8s", "Elapsed", "Throughput", "Mops", "AllocF", "Callbacks", "TotMemO");
+        printf("#%7s%12s%10s%8s%10s%8s%8s", "Elapsed", "Throughput", "Mops", "AllocF", "Callbacks", "TotMemO", "RCount");
         // for (t = 0; t < num_threads; t++) {
         //     printf("%7s %d", "Thread", t);
         // }
         printf("\n");
     }
-    printf(" %7.1f%12.0f%10.3f%8d%10d%8d", num_periods * duration/1000.0, throughput, throughput/1e6, allocate_fail, process_callbacks, total_memory_owned);
+    printf(" %7.1f%12.0f%10.3f%8d%10d%8d%8d", num_periods * duration/1000.0, throughput, throughput/1e6, allocate_fail, process_callbacks, total_memory_owned, total_rcount);
     // for (t = 0; t < num_threads; t++) {
     //     printf("%9d", memory_owned[t]);
     // }
