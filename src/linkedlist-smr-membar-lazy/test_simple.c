@@ -113,14 +113,6 @@ test(void* thread) {
 
     PF_INIT(3, SSPFD_NUM_ENTRIES, ID);
 
-#if defined(COMPUTE_LATENCY)
-    volatile ticks my_putting_succ = 0;
-    volatile ticks my_putting_fail = 0;
-    volatile ticks my_getting_succ = 0;
-    volatile ticks my_getting_fail = 0;
-    volatile ticks my_removing_succ = 0;
-    volatile ticks my_removing_fail = 0;
-#endif
     uint64_t my_putting_count = 0;
     uint64_t my_getting_count = 0;
     uint64_t my_removing_count = 0;
@@ -128,11 +120,6 @@ test(void* thread) {
     uint64_t my_putting_count_succ = 0;
     uint64_t my_getting_count_succ = 0;
     uint64_t my_removing_count_succ = 0;
-
-#if defined(COMPUTE_LATENCY) && PFD_TYPE == 0
-    volatile ticks start_acq, end_acq;
-    volatile ticks correction = getticks_correction_calc();
-#endif
 
     seeds = seed_rand();
 
@@ -195,14 +182,6 @@ test(void* thread) {
 
     barrier_cross(&barrier);
 
-#if defined(COMPUTE_LATENCY)
-    putting_succ[ID] += my_putting_succ;
-    putting_fail[ID] += my_putting_fail;
-    getting_succ[ID] += my_getting_succ;
-    getting_fail[ID] += my_getting_fail;
-    removing_succ[ID] += my_removing_succ;
-    removing_fail[ID] += my_removing_fail;
-#endif
     putting_count[ID] += my_putting_count;
     getting_count[ID] += my_getting_count;
     removing_count[ID] += my_removing_count;
@@ -479,16 +458,6 @@ int main(int argc, char **argv) {
         removing_count_total_succ += removing_count_succ[t];
     }
 
-#if defined(COMPUTE_LATENCY)
-    printf("#thread srch_suc srch_fal insr_suc insr_fal remv_suc remv_fal   ## latency (in cycles) \n"); fflush(stdout);
-    long unsigned get_suc = (getting_count_total_succ) ? getting_suc_total / getting_count_total_succ : 0;
-    long unsigned get_fal = (getting_count_total - getting_count_total_succ) ? getting_fal_total / (getting_count_total - getting_count_total_succ) : 0;
-    long unsigned put_suc = putting_count_total_succ ? putting_suc_total / putting_count_total_succ : 0;
-    long unsigned put_fal = (putting_count_total - putting_count_total_succ) ? putting_fal_total / (putting_count_total - putting_count_total_succ) : 0;
-    long unsigned rem_suc = removing_count_total_succ ? removing_suc_total / removing_count_total_succ : 0;
-    long unsigned rem_fal = (removing_count_total - removing_count_total_succ) ? removing_fal_total / (removing_count_total - removing_count_total_succ) : 0;
-    printf("%-7zu %-8lu %-8lu %-8lu %-8lu %-8lu %-8lu\n", num_threads, get_suc, get_fal, put_suc, put_fal, rem_suc, rem_fal);
-#endif
 
 #define LLU long long unsigned int
 

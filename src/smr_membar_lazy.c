@@ -179,20 +179,25 @@ void scan()
 
 void free_node_later(void *n)
 {
-    mr_node_t* wrapper_node = ssalloc_alloc(1, sizeof(mr_node_t));
-    wrapper_node->actual_node = n;
-    // Create timestamp in mr node
-    gettimeofday(&(wrapper_node->created), NULL);
+    if (n != NULL){
 
-    if (sd.rlist->size <= H){
-      ((node_t*)(wrapper_node->actual_node))->marked = 1;
-    } else{
-      ((node_t*)(wrapper_node->actual_node))->marked = 0;
+        mr_node_t* wrapper_node = ssalloc_alloc(1, sizeof(mr_node_t));
+        wrapper_node->actual_node = n;
+        // Create timestamp in mr node
+        gettimeofday(&(wrapper_node->created), NULL);
+
+        if (sd.rlist->size <= H){
+          ((node_t*)(wrapper_node->actual_node))->marked = 1;
+        } else{
+          ((node_t*)(wrapper_node->actual_node))->marked = 0;
+        }
+
+        //Add to rlist
+        add_to_head(sd.rlist, wrapper_node);
+        sd.rcount++;
+      
+
     }
-
-    //Add to rlist
-    add_to_head(sd.rlist, wrapper_node);
-    sd.rcount++;
 
     //If rlist size > 2*#HP do one rotation
     if (sd.rlist->size > H) { // >=?
