@@ -202,7 +202,7 @@ void free_node_later(void *n)
     }
 
     //If rlist size > 2*#HP do one rotation
-    if (sd.rlist->size > H) { // >=?
+    if (sd.rcount >= R && sd.rlist->size > H) { // >=?
         rotation();
     } 
 
