@@ -4,6 +4,7 @@
 #include "mr.h"
 #include "lock_if.h"
 #include "sleeper_threads.h"
+#include "double_llist.h"
 
 // QSBR STUFF
 #define FUZZY 0
@@ -60,7 +61,7 @@ struct shared_thread_data {
      *               with respect to memory reclamation
      *  epoch: the local epoch
      */
-    mr_node_t *limbo_list [N_EPOCHS];
+    double_llist_t *limbo_list [N_EPOCHS];
     uint8_t epoch;
     uint8_t in_critical;
     uint8_t is_present;
@@ -69,7 +70,7 @@ struct shared_thread_data {
     uint64_t allocate_fail_count;
 
 
-    char padding[CACHE_LINE_SIZE - 3 * sizeof(uint8_t) - N_EPOCHS * sizeof(mr_node_t*) - 3 * sizeof(uint64_t)];
+    char padding[CACHE_LINE_SIZE - 3 * sizeof(uint8_t) - N_EPOCHS * sizeof(double_llist_t *) - 3 * sizeof(uint64_t)];
 };
 
 struct local_thread_data {

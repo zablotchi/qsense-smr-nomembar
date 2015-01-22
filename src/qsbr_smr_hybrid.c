@@ -48,8 +48,9 @@ void mr_init_global(uint64_t nthreads) {
         shtd[i].process_callbacks_count = 0;
         shtd[i].scan_count = 0;
         //shtd[i].is_present = 1;
-        for (j = 0; j < N_EPOCHS; j++)
-            shtd[i].limbo_list[j] = NULL;
+        for (j = 0; j < N_EPOCHS; j++) {
+            init(shtd[i].limbo_list[j]);
+        }
     }
 
     HP = (hazard_pointer_t *)malloc(sizeof(hazard_pointer_t) * K*nthreads);
@@ -148,20 +149,20 @@ int update_epoch()
  *
  * @list: Pointer to list of node_t's.
  */
-void process_callbacks(mr_node_t **list)
+void process_callbacks(double_llist_t *list)
 {
-    mr_node_t *next;
+    mr_node_t *n;
     uint64_t num = 0;
     
     // write_barrier(); // IGOR why you do this?
     MEM_BARRIER;
 
-    for (; (*list) != NULL; (*list) = next) {
-        next = (*list)->mr_next;
+    while (list->head != NULL) {
+        n = remove_from_tail(list);
         
-        ((node_t *)((*list)->actual_node))->key = 10000;
-        ssfree_alloc(0, (*list)->actual_node);
-        ssfree_alloc(1, *list);
+        ((node_t *) (n->actual_node))->key = 10000;
+        ssfree_alloc(0, n->actual_node);
+        ssfree_alloc(1, n);
         num++;
     }
 
@@ -187,7 +188,7 @@ void quiescent_state (int blocking)
     epoch = qg->global_epoch;
     if (shtd[my_index].epoch != epoch) { /* New epoch. */
         /* Process callbacks for old 'incarnation' of this epoch. */
-        process_callbacks(&(shtd[my_index].limbo_list[epoch]));
+        process_callbacks(shtd[my_index].limbo_list[epoch]);
         shtd[my_index].epoch = epoch;
     } else {
         orig = shtd[my_index].in_critical;
@@ -198,7 +199,7 @@ void quiescent_state (int blocking)
             MEM_BARRIER;
             epoch = qg->global_epoch;
             if (shtd[my_index].epoch != epoch) {
-                process_callbacks(&(shtd[my_index].limbo_list[epoch]));
+                process_callbacks(shtd[my_index].limbo_list[epoch]);
                 shtd[my_index].epoch = epoch;
             }
             return;
@@ -226,8 +227,7 @@ void free_node_later (void *q)
     // Create timestamp in mr node
     gettimeofday(&(wrapper_node->created), NULL);
 
-    wrapper_node->mr_next = shtd[my_index].limbo_list[shtd[my_index].epoch];
-    shtd[my_index].limbo_list[shtd[my_index].epoch] = wrapper_node;
+    add_to_head(shtd[my_index].limbo_list[shtd[my_index].epoch], wrapper_node);
     ltd.rcount++;
 
     if (fallback.flag == 1 && ltd.rcount >= R) {
@@ -276,8 +276,8 @@ void scan()
     //OANA Modified Scan (a lot)
     ltd.rcount = 0;
     for (j = 0; j < N_EPOCHS; j++){
-        tmplist = shtd[my_index].limbo_list[j];
-        shtd[my_index].limbo_list[j] = NULL;
+        tmplist = shtd[my_index].limbo_list[j]->head;
+        shtd[my_index].limbo_list[j]->head = NULL;
 
         //tmplist = this_thread()->rlist;
         //this_thread()->rlist = NULL;
@@ -291,8 +291,8 @@ void scan()
                 //cur->mr_next = this_thread()->rlist;
                 //this_thread()->rlist = cur;
 
-                cur->mr_next = shtd[my_index].limbo_list[j];
-                shtd[my_index].limbo_list[j] = cur;
+                cur->mr_next = shtd[my_index].limbo_list[j]->head;
+                shtd[my_index].limbo_list[j]->head = cur;
                 ltd.rcount++;
             } else {
                 ((node_t *)(cur->actual_node))->key = 10000;      
@@ -315,14 +315,7 @@ uint8_t is_old_enough(mr_node_t* n) {
 void allocate_fail(int trials) {
 
     shtd[ltd.thread_index].allocate_fail_count ++;
-    // if (fallback.flag == 2){
-    //     //quiesce a number of times
-    //     int i;
-    //     for (i = 0; i < 10; i++) {
-    //         quiescent_state(FUZZY);
-    //     }
-    //     fallback.flag = 0;
-    //     printf("[%d] Switched to QSBR from allocate fail. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+
     volatile uint8_t flag = fallback.flag;
 
     if (ltd.last_flag == 1 && flag == 0) {
