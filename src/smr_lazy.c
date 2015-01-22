@@ -173,7 +173,8 @@ void scan()
     /* Stage 3: Free non-harzardous nodes. */
     tmplist = sd.rlist->head;
     sd.rlist->head = NULL;
-    sd.rcount = 0;
+    // Setting rcount to 0 here would ignore nodes from vlist
+    sd.rcount = sd.vlist->size;
     while (tmplist != NULL) {
         /* Pop cur off top of tmplist. */
         cur = tmplist;

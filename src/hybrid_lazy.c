@@ -173,14 +173,14 @@ void process_callbacks(double_llist_t *list)
         num++;
     }
 
-    while (ltd.vlist->head != NULL) {
-        n = remove_from_tail(ltd.vlist);
+    // while (ltd.vlist->head != NULL) {
+    //     n = remove_from_tail(ltd.vlist);
         
-        ((node_t *) (n->actual_node))->key = 10000;
-        ssfree_alloc(0, n->actual_node);
-        ssfree_alloc(1, n);
-        num++;
-    }
+    //     ((node_t *) (n->actual_node))->key = 10000;
+    //     ssfree_alloc(0, n->actual_node);
+    //     ssfree_alloc(1, n);
+    //     num++;
+    // }
 
     shtd[ltd.thread_index].process_callbacks_count+=num;
     /* Update our accounting information. */
@@ -254,43 +254,40 @@ void free_node_later (void *q)
 // TODO Comment this
 void update_lists() {
  
-    promote_one_node();
+    //keep marking and adding nodes from the end of rlist to the top of vlist, if they are old enough.
+    int i;
+    for (i = 0; i < N_EPOCHS; i++) {
+        while(ltd.vlist->size <= H && ltd.limbo_list[i]->tail != NULL && is_old_enough(ltd.limbo_list[i]->tail)) {
+            mr_node_t* to_add = remove_from_tail(ltd.limbo_list[i]);
+            ((node_t*) to_add->actual_node)->marked = 1;
+            add_to_head(ltd.vlist, to_add);
+        }            
+    }
 
     //If vlist size > 2*#HP do one rotation
     if (ltd.vlist->size > H) { // >=?
         rotation();
-    } else {//vlist size < 2*#HP
-      
-        //keep marking and adding nodes from the end of rlist to the top of vlist, if they are old enough.
-        int i;
-        for (i = 0; i < N_EPOCHS; i++) {
-            while(ltd.vlist->size <= H && ltd.limbo_list[i]->tail != NULL && is_old_enough(ltd.limbo_list[i]->tail)) {
-                mr_node_t* to_add = remove_from_tail(ltd.limbo_list[i]);
-                ((node_t*) to_add->actual_node)->marked = 1;
-                add_to_head(ltd.vlist, to_add);
-            }            
-        }
     } 
 }
 
-// TODO Comment this
-void promote_one_node() {
-    //Look at oldest node in rlist (need to keep pointer to oldest node in rlist)
-    int i;
-    for (i = 0; i < N_EPOCHS; i++) {
-        if (is_old_enough(ltd.limbo_list[i]->tail)) {
-            //If old enough, pop it from rlist and add it to top of vlist
-            mr_node_t* to_add = remove_from_tail(ltd.limbo_list[i]);
-            add_to_head(ltd.vlist, to_add); 
-            if (sd.vlist->size <= H) { 
-                //mark previously added node (vlist head) if the list is not large enough yet
-                ((node_t*) sd.vlist->head->actual_node)->marked = 1;
-            }
-            return;     
-        }
-    }
-    return;
-}
+// // TODO Comment this
+// void promote_one_node() {
+//     //Look at oldest node in rlist (need to keep pointer to oldest node in rlist)
+//     int i;
+//     for (i = 0; i < N_EPOCHS; i++) {
+//         if (is_old_enough(ltd.limbo_list[i]->tail)) {
+//             //If old enough, pop it from rlist and add it to top of vlist
+//             mr_node_t* to_add = remove_from_tail(ltd.limbo_list[i]);
+//             add_to_head(ltd.vlist, to_add); 
+//             if (sd.vlist->size <= H) { 
+//                 //mark previously added node (vlist head) if the list is not large enough yet
+//                 ((node_t*) sd.vlist->head->actual_node)->marked = 1;
+//             }
+//             return;     
+//         }
+//     }
+//     return;
+// }
 
 void rotation(){
     //verify current HP and mark corresponding node
@@ -391,6 +388,29 @@ void scan()
                 ssfree_alloc(0, cur->actual_node);
                 ssfree_alloc(1, cur);
             }
+        }
+    }
+
+    tmplist.head = ltd.vlist->head;
+    tmplist.tail = ltd.vlist->tail;
+    tmplist.size = ltd.vlist->size;
+
+    init(ltd.vlist);
+
+    while (tmplist.size > 0) {
+
+        /* Pop cur off top of tmplist. */
+        cur = remove_from_tail(&tmplist);
+        // tmplist = tmplist->mr_next;
+
+        if (ssearch(plist, psize, cur->actual_node)) {
+
+            add_to_head(ltd.vlist, cur);
+            ltd.rcount++;
+        } else {
+            ((node_t *)(cur->actual_node))->key = 10000;      
+            ssfree_alloc(0, cur->actual_node);
+            ssfree_alloc(1, cur);
         }
     }
 }
