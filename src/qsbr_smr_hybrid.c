@@ -49,6 +49,7 @@ void mr_init_global(uint64_t nthreads) {
         shtd[i].scan_count = 0;
         //shtd[i].is_present = 1;
         for (j = 0; j < N_EPOCHS; j++) {
+            shtd[i].limbo_list[j] = (double_llist_t*) malloc(sizeof(double_llist_t));
             init(shtd[i].limbo_list[j]);
         }
     }
