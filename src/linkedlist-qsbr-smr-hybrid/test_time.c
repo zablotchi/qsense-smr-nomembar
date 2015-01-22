@@ -649,7 +649,7 @@ void print_statistics(size_t duration, int num_periods) {
         shtd[t].process_callbacks_count = 0;
         
         for (j = 0; j < 3; j++) {
-            for(cur = shtd[t].limbo_list[j]; cur != NULL; cur=cur->mr_next) {
+            for(cur = shtd[t].limbo_list[j]->head; cur != NULL; cur=cur->mr_next) {
                 limbo_count++;
             }
         } 
