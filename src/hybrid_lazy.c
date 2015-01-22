@@ -6,24 +6,27 @@
 #include "atomic_ops_if.h"
 #include "utils.h"
 #include "lock_if.h"
-#include "linkedlist-qsbr-smr-hybrid/linkedlist.h"
+#include "linkedlist-hybrid-lazy/linkedlist.h"
 
 struct qsbr_globals *qg ALIGNED(CACHE_LINE_SIZE);
 
 shared_thread_data_t *shtd;
 
 __thread local_thread_data_t ltd;
+__thread uint64_t HP_cur;
+
+int nthreads_;
+volatile uint8_t *is_present_vect;
 
 int compare (const void *a, const void *b);
 uint8_t is_old_enough(mr_node_t* n);
 inline int ssearch(void **list, size_t size, void *key);
 void reset_presence();
 int all_threads_present();
-uint8_t nthreads_;
+void rotation();
 
-volatile uint8_t *is_present_vect;
 
-void mr_init_local(uint8_t thread_index, uint8_t nthreads) {
+void mr_init_local(uint64_t thread_index, uint64_t nthreads) {
     ltd.thread_index = thread_index;
     ltd.nthreads = nthreads;
     ltd.rcount = 0;
@@ -34,10 +37,15 @@ void mr_init_local(uint8_t thread_index, uint8_t nthreads) {
         ltd.limbo_list[j] = (double_llist_t*) malloc(sizeof(double_llist_t));
         init(ltd.limbo_list[j]);
     }
+
+    sd.vlist = (double_llist_t*) malloc(sizeof(double_llist_t));
+    init(sd.vlist);
+    HP_cur = 0;
+
 }
 
 // TODO IGOR OANA add NULL verification after memory allocation
-void mr_init_global(uint8_t nthreads) {
+void mr_init_global(uint64_t nthreads) {
     int i;
     
     nthreads_ = nthreads;
@@ -53,7 +61,6 @@ void mr_init_global(uint8_t nthreads) {
         shtd[i].process_callbacks_count = 0;
         shtd[i].scan_count = 0;
         //shtd[i].is_present = 1;
-
     }
 
     HP = (hazard_pointer_t *)malloc(sizeof(hazard_pointer_t) * K*nthreads);
@@ -84,6 +91,13 @@ void mr_thread_exit()
     // Hazard pointer-style exit every time just to be safe
     // IGOR OANA if we end up having rooster threads only in case of fallback mode
     // will it not be a problem to use HP style exit?
+
+    //Move everything from vlist to rlist and then proceed as before, with scans
+    while (ltd.vlist->size > 0){
+        mr_node_t* cur = remove_from_tail(ltd.vlist);
+        add_to_head(ltd.limbo_list[0], cur);
+    }    
+
     int i;
     
     for (i = 0; i < K; i++)
@@ -99,19 +113,9 @@ void mr_thread_exit()
     }
 
     // printf("Scan count = %d; Retries = %d\n", shtd[ltd.thread_index].scan_count, retries);
-
-
 }
 
-void mr_reinitialize()
-{
-    //TODO: rethink this
-    qg->global_epoch = 1;
-    int i;
-    for (i = 0; i < ltd.nthreads; i++) {
-        shtd[i].epoch = 0;
-    }
-}
+void mr_reinitialize() {}
 
 int update_epoch()
 {
@@ -169,6 +173,15 @@ void process_callbacks(double_llist_t *list)
         num++;
     }
 
+    while (ltd.vlist->head != NULL) {
+        n = remove_from_tail(ltd.vlist);
+        
+        ((node_t *) (n->actual_node))->key = 10000;
+        ssfree_alloc(0, n->actual_node);
+        ssfree_alloc(1, n);
+        num++;
+    }
+
     shtd[ltd.thread_index].process_callbacks_count+=num;
     /* Update our accounting information. */
     ltd.rcount -= num;
@@ -183,7 +196,7 @@ void process_callbacks(double_llist_t *list)
 void quiescent_state (int blocking)
 {
     // struct per_thread *t = this_thread();
-    uint8_t my_index = ltd.thread_index;
+    uint64_t my_index = ltd.thread_index;
     int epoch;
     int orig;
 
@@ -223,7 +236,7 @@ void quiescent_state (int blocking)
  */
 void free_node_later (void *q)
 {
-    uint8_t my_index = ltd.thread_index;
+    uint64_t my_index = ltd.thread_index;
 
     mr_node_t* wrapper_node = ssalloc_alloc(1, sizeof(mr_node_t));
     wrapper_node->actual_node = q;
@@ -233,9 +246,81 @@ void free_node_later (void *q)
     add_to_head(ltd.limbo_list[shtd[my_index].epoch], wrapper_node);
     ltd.rcount++;
 
-    if (fallback.flag == 1 && ltd.rcount >= R) {
+    if (fallback.flag == 1) {
+        update_lists();
+    }
+}
 
-        scan();
+// TODO Comment this
+void update_lists() {
+ 
+    promote_one_node();
+
+    //If vlist size > 2*#HP do one rotation
+    if (ltd.vlist->size > H) { // >=?
+        rotation();
+    } else {//vlist size < 2*#HP
+      
+        //keep marking and adding nodes from the end of rlist to the top of vlist, if they are old enough.
+        int i;
+        for (i = 0; i < N_EPOCHS; i++) {
+            while(ltd.vlist->size <= H && ltd.limbo_list[i]->tail != NULL && is_old_enough(ltd.limbo_list[i]->tail)) {
+                mr_node_t* to_add = remove_from_tail(ltd.limbo_list[i]);
+                ((node_t*) to_add->actual_node)->marked = 1;
+                add_to_head(ltd.vlist, to_add);
+            }            
+        }
+    } 
+}
+
+// TODO Comment this
+void promote_one_node() {
+    //Look at oldest node in rlist (need to keep pointer to oldest node in rlist)
+    int i;
+    for (i = 0; i < N_EPOCHS; i++) {
+        if (is_old_enough(ltd.limbo_list[i]->tail)) {
+            //If old enough, pop it from rlist and add it to top of vlist
+            mr_node_t* to_add = remove_from_tail(ltd.limbo_list[i]);
+            add_to_head(ltd.vlist, to_add); 
+            if (sd.vlist->size <= H) { 
+                //mark previously added node (vlist head) if the list is not large enough yet
+                ((node_t*) sd.vlist->head->actual_node)->marked = 1;
+            }
+            return;     
+        }
+    }
+    return;
+}
+
+void rotation(){
+    //verify current HP and mark corresponding node
+    node_t* cur_HP_node = (node_t*)(HP[HP_cur].p);
+
+    if (cur_HP_node != NULL) {
+        cur_HP_node->marked = 1;
+    }
+
+    //increase HP current counter (mod H)
+    HP_cur = (HP_cur + 1) % H;
+
+    //check if tail of vlist is marked
+    node_t* vlist_tail = (node_t*)ltd.vlist->tail->actual_node;
+    if (vlist_tail->marked) {  //if tail is marked
+        //unmark it
+        vlist_tail->marked = 0;
+        //remove it from vlist tail
+        //add it to vlist head
+        add_to_head(ltd.vlist, remove_from_tail(ltd.vlist));
+
+    } else { //tail is unmarked
+        //free the memory
+        mr_node_t* vlist_tail_mr = remove_from_tail(ltd.vlist);
+        ((node_t *)(vlist_tail_mr->actual_node))->key = 10000;
+        ssfree_alloc(0, vlist_tail_mr->actual_node);
+        ssfree_alloc(1, vlist_tail_mr);
+
+        //decrease rcount
+        ltd.rcount--;
     }
 }
 
@@ -246,7 +331,7 @@ void scan()
     /* Iteratation variables. */
     mr_node_t *cur;
     int i,j;
-    uint8_t my_index = ltd.thread_index;
+    uint64_t my_index = ltd.thread_index;
 
     shtd[my_index].scan_count++;
 

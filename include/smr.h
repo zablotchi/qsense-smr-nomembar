@@ -43,14 +43,6 @@
 
 #define MAX_EXIT_RETRIES 100 * sd.nthreads
 
-#ifndef SLEEP_AMOUNT
-    #define SLEEP_AMOUNT 150
-#endif
-
-#ifndef MARGIN
-    #define MARGIN 50
-#endif
-
 // typedef struct hazard_pointer_s {
 //     struct node *  __attribute__ ((__aligned__ (CACHESIZE))) p;
 // } hazard_pointer;

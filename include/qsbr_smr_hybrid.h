@@ -61,7 +61,6 @@ struct shared_thread_data {
      *               with respect to memory reclamation
      *  epoch: the local epoch
      */
-    double_llist_t *limbo_list [N_EPOCHS];
     uint8_t epoch;
     uint8_t in_critical;
     uint8_t is_present;
@@ -70,18 +69,20 @@ struct shared_thread_data {
     uint64_t allocate_fail_count;
 
 
-    char padding[CACHE_LINE_SIZE - 3 * sizeof(uint8_t) - N_EPOCHS * sizeof(double_llist_t *) - 3 * sizeof(uint64_t)];
+    char padding[CACHE_LINE_SIZE - 3 * sizeof(uint8_t)  - 3 * sizeof(uint64_t)];
 };
 
 struct local_thread_data {
   // mr_node_t *rlist;
+  double_llist_t *limbo_list [N_EPOCHS];
+  double_llist_t *vlist;
   void **plist;
   uint64_t rcount;
-  uint64_t nthreads;
-  uint64_t thread_index;
+  uint8_t nthreads;
+  uint8_t thread_index;
   uint8_t last_flag;
 
-  char padding[CACHE_LINE_SIZE - 5 * sizeof(uint64_t) - sizeof(void **) - sizeof(uint8_t)];
+  char padding[CACHE_LINE_SIZE - N_EPOCHS * sizeof(double_llist_t *) - sizeof(double_llist_t *) - sizeof(uint64_t) - sizeof(void **) - 3 * sizeof(uint8_t)];
 };
 
 typedef ALIGNED(CACHE_LINE_SIZE) struct shared_thread_data shared_thread_data_t;

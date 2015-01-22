@@ -633,6 +633,7 @@ void print_statistics(size_t duration, int num_periods) {
     volatile uint64_t allocate_fail_count_total_old = allocate_fail_count_total;
     volatile uint64_t process_callbacks_count_total_old = process_callbacks_count_total;
     int t, j;
+    uint64_t limbo_count = 0;
     mr_node_t* cur;
     for (t = 0; t < num_threads; t++) {
         putting_count_total += putting_count[t];
@@ -647,6 +648,11 @@ void print_statistics(size_t duration, int num_periods) {
         shtd[t].allocate_fail_count = 0;
         shtd[t].process_callbacks_count = 0;
         
+        for (j = 0; j < 3; j++) {
+            for(cur = shtd[t].limbo_list[j]; cur != NULL; cur=cur->mr_next) {
+                limbo_count++;
+            }
+        } 
         // scan_count_total += shtd[t].scan_count;
     }
 
@@ -661,13 +667,13 @@ void print_statistics(size_t duration, int num_periods) {
     }
 
     if (num_periods == 1) {
-        printf("#%7s%12s%10s%8s%10s%8s", "Elapsed", "Throughput", "Mops", "AllocF", "Callbacks", "TotMemO");
+        printf("#%7s%12s%10s%8s%6s%10s%8s", "Elapsed", "Throughput", "Mops", "AllocF", "Limbo", "Callbacks", "TotMemO");
         // for (t = 0; t < num_threads; t++) {
         //     printf("%7s %d", "Thread", t);
         // }
         printf("\n");
     }
-    printf(" %7.1f%12.0f%10.3f%8d%10d%8d", num_periods * duration/1000.0, throughput, throughput/1e6, allocate_fail, process_callbacks, total_memory_owned);
+    printf(" %7.1f%12.0f%10.3f%8d%6d%10d%8d", num_periods * duration/1000.0, throughput, throughput/1e6, allocate_fail, limbo_count, process_callbacks, total_memory_owned);
     // for (t = 0; t < num_threads; t++) {
     //     printf("%9d", memory_owned[t]);
     // }

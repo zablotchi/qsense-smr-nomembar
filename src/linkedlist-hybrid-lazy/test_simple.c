@@ -51,7 +51,6 @@ size_t load_factor;
 size_t update = DEFAULT_UPDATE;
 size_t num_threads = DEFAULT_NB_THREADS;
 size_t duration = DEFAULT_DURATION;
-size_t periods = DEFAULT_N_PERIODS;
 
 size_t print_vals_num = 100;
 size_t pf_vals_num = 1023;
@@ -64,19 +63,12 @@ __thread unsigned long * seeds;
 uint32_t rand_max;
 #define rand_min 1
 
-static volatile int stop, final_stop;
-//static volatile int *r_count;
-
+static volatile int stop;
 
 extern uint64_t memory_reuse;
 extern uint64_t freed_nodes;
 extern shared_thread_data_t *shtd;
 extern __thread local_thread_data_t ltd;
-extern __thread uintptr_t ssalloc_app_mem[SSALLOC_NUM_ALLOCATORS];
-extern __thread size_t alloc_next[SSALLOC_NUM_ALLOCATORS];
-extern __thread void* ssalloc_free_list[SSALLOC_NUM_ALLOCATORS][65536];
-extern __thread uint16_t ssalloc_free_cur[SSALLOC_NUM_ALLOCATORS];
-extern __thread uint16_t ssalloc_free_num[SSALLOC_NUM_ALLOCATORS];
 
 TEST_VARS_GLOBAL
 ;
@@ -94,16 +86,6 @@ volatile ticks *getting_count_succ;
 volatile ticks *removing_count;
 volatile ticks *removing_count_succ;
 volatile ticks *total;
-volatile ticks *memory_owned;
-
-volatile uint64_t putting_count_total = 0;
-volatile uint64_t getting_count_total = 0;
-volatile uint64_t removing_count_total = 0;
-volatile uint64_t allocate_fail_count_total = 0;
-volatile uint64_t process_callbacks_count_total = 0;
-
-void print_statistics(size_t duration, int num_periods);
-int all_threads_present();
 
 /* ################################################################### *
  * LOCALS
@@ -134,7 +116,6 @@ test(void* thread) {
     DS_TYPE* set = td->set;
 
     PF_INIT(3, SSPFD_NUM_ENTRIES, ID);
-
     uint64_t my_putting_count = 0;
     uint64_t my_getting_count = 0;
     uint64_t my_removing_count = 0;
@@ -183,64 +164,33 @@ test(void* thread) {
 
     RETRY_STATS_ZERO();
 
+    barrier_cross(&barrier_global);
+
+    RR_START_SIMPLE();
 
     int qcount = 0;
-    int n_period = 0;
-    while (final_stop == 0) {
+    
+    while (stop == 0) {
 
-        // Signal from main to start
-        barrier_cross(&barrier_global);
-        RR_START_SIMPLE();
-        while (stop == 0) {
+        // if (ID % 2 == 0){
+        //     uint64_t sleep_rand = (my_random(&(seeds[0]), &(seeds[1]), &(seeds[2]))
+        //                     % (1001));
 
-            // if (ID == 1 && qcount == 10) {
-            //     printf("Dying now. Scans = %d\n", shtd[ID].scan_count);
-            //     goto kill_thread;
-            // }
+        //     struct timespec sleep;
+        //         sleep.tv_sec = 0;
+        //         sleep.tv_nsec = (sleep_rand % 1000) * 100000;
+        //     nanosleep(&sleep, NULL);
+        // }
 
-            // if (ID % 2 == 0){
-            //     uint64_t sleep_rand = (my_random(&(seeds[0]), &(seeds[1]), &(seeds[2]))
-            //                     % (1001));
-
-            //     struct timespec sleep;
-            //         sleep.tv_sec = 0;
-            //         sleep.tv_nsec = (sleep_rand % 1000) * 100000;
-            //     nanosleep(&sleep, NULL);
-            // }
-
-            if (ID == 1 && ((n_period/10) % 2 == 1) ) {
-                
-                sched_yield();
-            } else {
-
-                TEST_LOOP(NULL);
-                
-                qcount++;
-                if (qcount == QUIESCENCE_THRESHOLD) {
-                    qcount = 0;
-                    manage_hybrid_state();
-                }
-
-            }
+        TEST_LOOP(NULL);
+        
+        qcount++;
+        if (qcount == QUIESCENCE_THRESHOLD) {
+            qcount = 0;
+            manage_hybrid_state();
         }
 
-        putting_count[ID] += my_putting_count;
-        getting_count[ID] += my_getting_count;
-        removing_count[ID] += my_removing_count;
-
-        my_putting_count = 0;
-        my_getting_count = 0;
-        my_removing_count = 0;
-
-        memory_owned[ID] = ltd.rcount + ssalloc_free_num[0] + ((SSALLOC_SIZE_SMALL - alloc_next[0])/sizeof(node_t));
-
-        // Signal to main that everybody has stopped
-        barrier_cross(&barrier_global);
-
-        n_period ++;
     }
-
-    
     mr_thread_exit();
 
 kill_thread:
@@ -254,6 +204,9 @@ kill_thread:
 
     barrier_cross(&barrier);
 
+    putting_count[ID] += my_putting_count;
+    getting_count[ID] += my_getting_count;
+    removing_count[ID] += my_removing_count;
 
     putting_count_succ[ID] += my_putting_count_succ;
     getting_count_succ[ID] += my_getting_count_succ;
@@ -271,7 +224,6 @@ kill_thread:
     pthread_exit(NULL);
 }
 
-
 int main(int argc, char **argv) {
     set_cpu(the_cores[0]);
     ssalloc_init();
@@ -279,22 +231,20 @@ int main(int argc, char **argv) {
 
     struct option long_options[] = {
             // These options don't set a flag
-            { "help", no_argument, NULL, 'h' }, 
-            { "duration", required_argument, NULL, 'd' },
-            { "initial-size", required_argument, NULL, 'i' }, 
-            { "num-threads", required_argument, NULL, 'n' }, 
-            { "range", required_argument, NULL, 'r' }, 
-            { "update-rate", required_argument, NULL, 'u' }, 
-            { "num-buckets",required_argument, NULL, 'b' }, 
-            { "print-vals", required_argument, NULL, 'v' }, 
-            { "vals-pf", required_argument, NULL, 'f' }, 
-            { "periods", required_argument, NULL, 'x'}, 
-            { NULL, 0, NULL, 0 } };
+            { "help", no_argument, NULL, 'h' }, { "duration", required_argument,
+                    NULL, 'd' },
+            { "initial-size", required_argument, NULL, 'i' }, { "num-threads",
+                    required_argument, NULL, 'n' }, { "range",
+                    required_argument, NULL, 'r' }, { "update-rate",
+                    required_argument, NULL, 'u' }, { "num-buckets",
+                    required_argument, NULL, 'b' }, { "print-vals",
+                    required_argument, NULL, 'v' }, { "vals-pf",
+                    required_argument, NULL, 'f' }, { NULL, 0, NULL, 0 } };
 
     int i, c;
     while (1) {
         i = 0;
-        c = getopt_long(argc, argv, "hAf:d:i:n:r:s:u:m:a:l:p:b:v:f:x:",
+        c = getopt_long(argc, argv, "hAf:d:i:n:r:s:u:m:a:l:p:b:v:f:",
                 long_options, &i);
 
         if (c == -1)
@@ -335,9 +285,7 @@ int main(int argc, char **argv) {
                             "  -v, --print-vals <int>\n"
                             "        When using detailed profiling, how many values to print.\n"
                             "  -f, --val-pf <int>\n"
-                            "        When using detailed profiling, how many values to keep track of.\n"
-                            "  -x, --periods <int>\n"
-                            "        Number of periods.\n");
+                            "        When using detailed profiling, how many values to keep track of.\n");
             exit(0);
         case 'd':
             duration = atoi(optarg);
@@ -360,9 +308,6 @@ int main(int argc, char **argv) {
             break;
         case 'l':
             load_factor = atoi(optarg);
-            break;
-        case 'x':
-            periods = atoi(optarg);
             break;
         case 'v':
             print_vals_num = atoi(optarg);
@@ -431,8 +376,6 @@ int main(int argc, char **argv) {
     timeout.tv_nsec = (duration % 1000) * 1000000;
 
     stop = 0;
-    final_stop = 0;
-
 
     DS_TYPE* set = DS_NEW();
     mr_init_global(num_threads);
@@ -452,14 +395,7 @@ int main(int argc, char **argv) {
     getting_count_succ = (ticks *) calloc(num_threads, sizeof(ticks));
     removing_count = (ticks *) calloc(num_threads, sizeof(ticks));
     removing_count_succ = (ticks *) calloc(num_threads, sizeof(ticks));
-    memory_owned = (ticks *) calloc(num_threads, sizeof(ticks));
 
-
-    //Initialize the rcount vector
-/*    r_count = (int*) malloc(num_threads * sizeof(int));
-    for (i = 0; i < num_threads; i++){
-        r_count[i] = 0;
-    }*/
 
     /* Initialize and set thread detached attribute */
     pthread_attr_t attr;
@@ -492,38 +428,14 @@ int main(int argc, char **argv) {
     /* Free attribute and wait for the other threads */
     pthread_attr_destroy(&attr);
 
-    final_stop = 0;
-    int num_periods = 0;
-    size_t duration_partial = 0;
-    size_t duration_total = 0;
-    while (num_periods < periods) {
+    barrier_cross(&barrier_global);
+    gettimeofday(&start, NULL);
+    nanosleep(&timeout, NULL);
 
-        stop = 0;
-        // Cross barrier to let threads know to start
-        barrier_cross(&barrier_global);
-        
-        // Sleep
-        gettimeofday(&start, NULL);
-        nanosleep(&timeout, NULL);
-
-        stop = 1;
-        gettimeofday(&end, NULL);
-        duration_partial = (end.tv_sec * 1000 + end.tv_usec / 1000)
-                - (start.tv_sec * 1000 + start.tv_usec / 1000);
-        duration_total += duration_partial;
-
-        num_periods++;
-        if (num_periods == periods) {
-            final_stop = 1;
-        }
-
-        // Cross barrier to wait for all threads to finish
-        barrier_cross(&barrier_global);
-
-        // Compute and print statistics 
-        print_statistics(duration_partial, num_periods);
-    }
-
+    stop = 1;
+    gettimeofday(&end, NULL);
+    duration = (end.tv_sec * 1000 + end.tv_usec / 1000)
+            - (start.tv_sec * 1000 + start.tv_usec / 1000);
 
     for (t = 0; t < num_threads; t++) {
         rc = pthread_join(threads[t], &status);
@@ -534,7 +446,7 @@ int main(int argc, char **argv) {
     }
 
     free(tds);
-    mr_exit_global(); //join sleeper threads
+    mr_exit_global();
 
     volatile ticks putting_suc_total = 0;
     volatile ticks putting_fal_total = 0;
@@ -542,11 +454,11 @@ int main(int argc, char **argv) {
     volatile ticks getting_fal_total = 0;
     volatile ticks removing_suc_total = 0;
     volatile ticks removing_fal_total = 0;
-    // volatile uint64_t putting_count_total = 0;
+    volatile uint64_t putting_count_total = 0;
     volatile uint64_t putting_count_total_succ = 0;
-    // volatile uint64_t getting_count_total = 0;
+    volatile uint64_t getting_count_total = 0;
     volatile uint64_t getting_count_total_succ = 0;
-    // volatile uint64_t removing_count_total = 0;
+    volatile uint64_t removing_count_total = 0;
     volatile uint64_t removing_count_total_succ = 0;
 
     volatile uint64_t process_callbacks_count_total = 0;
@@ -559,11 +471,11 @@ int main(int argc, char **argv) {
         getting_fal_total += getting_fail[t];
         removing_suc_total += removing_succ[t];
         removing_fal_total += removing_fail[t];
-        // putting_count_total += putting_count[t];
+        putting_count_total += putting_count[t];
         putting_count_total_succ += putting_count_succ[t];
-        // getting_count_total += getting_count[t];
+        getting_count_total += getting_count[t];
         getting_count_total_succ += getting_count_succ[t];
-        // removing_count_total += removing_count[t];
+        removing_count_total += removing_count[t];
         removing_count_total_succ += removing_count_succ[t];
 
         process_callbacks_count_total += shtd[t].process_callbacks_count;
@@ -611,7 +523,7 @@ int main(int argc, char **argv) {
             (removing_perc * removing_perc_succ) / 100);
 
     double throughput = (putting_count_total + getting_count_total
-            + removing_count_total) * 1000.0 / duration_total;
+            + removing_count_total) * 1000.0 / duration;
     printf("#txs %zu\t(%-10.0f\n", num_threads, throughput);
 
     printf("Scans: %llu , Process callbacks: %llu\n", scan_count_total, process_callbacks_count_total);
@@ -624,54 +536,3 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-
-void print_statistics(size_t duration, int num_periods) {
-
-    volatile uint64_t putting_count_total_old = putting_count_total;
-    volatile uint64_t getting_count_total_old = getting_count_total;
-    volatile uint64_t removing_count_total_old = removing_count_total;
-    volatile uint64_t allocate_fail_count_total_old = allocate_fail_count_total;
-    volatile uint64_t process_callbacks_count_total_old = process_callbacks_count_total;
-    int t, j;
-    mr_node_t* cur;
-    for (t = 0; t < num_threads; t++) {
-        putting_count_total += putting_count[t];
-        getting_count_total += getting_count[t];
-        removing_count_total += removing_count[t];
-        allocate_fail_count_total += shtd[t].allocate_fail_count;
-        process_callbacks_count_total += shtd[t].process_callbacks_count;
-
-        putting_count[t] = 0;
-        getting_count[t] = 0;
-        removing_count[t] = 0;
-        shtd[t].allocate_fail_count = 0;
-        shtd[t].process_callbacks_count = 0;
-        
-        // scan_count_total += shtd[t].scan_count;
-    }
-
-    double throughput = (putting_count_total + getting_count_total
-        + removing_count_total - putting_count_total_old - getting_count_total_old - removing_count_total_old) * 1000.0 / duration;
-
-    uint64_t allocate_fail = allocate_fail_count_total - allocate_fail_count_total_old;
-    uint64_t process_callbacks = process_callbacks_count_total - process_callbacks_count_total_old;
-    uint64_t total_memory_owned = 0;
-    for (t = 0; t < num_threads; t++) {
-        total_memory_owned += memory_owned[t];
-    }
-
-    if (num_periods == 1) {
-        printf("#%7s%12s%10s%8s%10s%8s", "Elapsed", "Throughput", "Mops", "AllocF", "Callbacks", "TotMemO");
-        // for (t = 0; t < num_threads; t++) {
-        //     printf("%7s %d", "Thread", t);
-        // }
-        printf("\n");
-    }
-    printf(" %7.1f%12.0f%10.3f%8d%10d%8d", num_periods * duration/1000.0, throughput, throughput/1e6, allocate_fail, process_callbacks, total_memory_owned);
-    // for (t = 0; t < num_threads; t++) {
-    //     printf("%9d", memory_owned[t]);
-    // }
-    printf("\n");
-
-}
-

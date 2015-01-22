@@ -10,8 +10,8 @@
 // #include "node.h"
  #include "utils.h"
 
-void mr_init_global(uint64_t nthreads);
-void mr_init_local(uint64_t thread_index, uint64_t nthreads);
+void mr_init_global(uint8_t nthreads);
+void mr_init_local(uint8_t thread_index, uint8_t nthreads);
 void mr_thread_exit();
 void mr_exit_global();
 void mr_reinitialize();
