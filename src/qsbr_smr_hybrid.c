@@ -249,7 +249,8 @@ void scan()
     shtd[my_index].scan_count++;
 
     /* List of SMR callbacks. */
-    mr_node_t *tmplist;
+    double_llist_t tmplist;
+    init(&tmplist);
 
     /* List of hazard pointers, and its size. */
     void **plist = ltd.plist;
@@ -277,23 +278,26 @@ void scan()
     //OANA Modified Scan (a lot)
     ltd.rcount = 0;
     for (j = 0; j < N_EPOCHS; j++){
-        tmplist = shtd[my_index].limbo_list[j]->head;
-        shtd[my_index].limbo_list[j]->head = NULL;
+        tmplist.head = shtd[my_index].limbo_list[j]->head;
+        tmplist.tail = shtd[my_index].limbo_list[j]->tail;
+        tmplist.size = shtd[my_index].limbo_list[j]->size;
+
+        init(shtd[my_index].limbo_list[j]);
 
         //tmplist = this_thread()->rlist;
         //this_thread()->rlist = NULL;
         //this_thread()->rcount = 0;
-        while (tmplist != NULL) {
+        while (tmplist.size > 0) {
+
             /* Pop cur off top of tmplist. */
-            cur = tmplist;
-            tmplist = tmplist->mr_next;
+            cur = remove_from_tail(&tmplist);
+            // tmplist = tmplist->mr_next;
 
             if (!is_old_enough(cur) || ssearch(plist, psize, cur->actual_node)) {
                 //cur->mr_next = this_thread()->rlist;
                 //this_thread()->rlist = cur;
 
-                cur->mr_next = shtd[my_index].limbo_list[j]->head;
-                shtd[my_index].limbo_list[j]->head = cur;
+                add_to_head(shtd[my_index].limbo_list[j], cur);
                 ltd.rcount++;
             } else {
                 ((node_t *)(cur->actual_node))->key = 10000;      
