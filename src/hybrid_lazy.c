@@ -75,7 +75,7 @@ void mr_init_global(uint8_t nthreads) {
         is_present_vect[i] = 1;
     }
 
-    fallback.flag = 1;
+    fallback.flag = 0;
 
     //create sleeper threads
     init_sleeper_threads(nthreads, reset_presence);
@@ -453,38 +453,38 @@ void allocate_fail(int trials) {
 }
 
 void manage_hybrid_state(){
-    // //Signal to the other threads that 
-    // //thread is present in the system (not delayed) 
+    //Signal to the other threads that 
+    //thread is present in the system (not delayed) 
 
-    // //shtd[ltd.thread_index].is_present = 1;
-    // is_present_vect[ltd.thread_index] = 1;
+    //shtd[ltd.thread_index].is_present = 1;
+    is_present_vect[ltd.thread_index] = 1;
 
-    // //r_count[ltd.thread_index] = ltd.rcount;
-    // volatile uint8_t flag = fallback.flag;
+    //r_count[ltd.thread_index] = ltd.rcount;
+    volatile uint8_t flag = fallback.flag;
 
-    // int i;
-    // if (ltd.last_flag == 1 && flag == 0) {
-    //     for (i = 0; i < 100; i++) {
-    //         quiescent_state(FUZZY);
-    //     }
-    //     ltd.last_flag = 0;
-    //     printf("[%d] Quiescing before switch to QSBR from test. Rcount:%d\n", ltd.thread_index, ltd.rcount);
-    // } else if (flag == 0) { 
-    //     quiescent_state(FUZZY);
-    //     ltd.last_flag = 0;
-    // } else if (flag == 1) {
-    //     if (all_threads_present() == 1) {
-    //         // mr_reinitialize();
-    //         fallback.flag = 0;
-    //         ltd.last_flag = 0;
-    //         printf("[%d] Switched to QSBR. Rcount:%d\n", ltd.thread_index, ltd.rcount);
-    //         for (i = 0; i < 10; i++) {
-    //             quiescent_state(FUZZY);
-    //         }
-    //         // fallback.flag = 0;
-    //     }
-    //     ltd.last_flag = 1; 
-    // }
+    int i;
+    if (ltd.last_flag == 1 && flag == 0) {
+        for (i = 0; i < 100; i++) {
+            quiescent_state(FUZZY);
+        }
+        ltd.last_flag = 0;
+        printf("[%d] Quiescing before switch to QSBR from test. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+    } else if (flag == 0) { 
+        quiescent_state(FUZZY);
+        ltd.last_flag = 0;
+    } else if (flag == 1) {
+        if (all_threads_present() == 1) {
+            // mr_reinitialize();
+            fallback.flag = 0;
+            ltd.last_flag = 0;
+            printf("[%d] Switched to QSBR. Rcount:%d\n", ltd.thread_index, ltd.rcount);
+            for (i = 0; i < 10; i++) {
+                quiescent_state(FUZZY);
+            }
+            // fallback.flag = 0;
+        }
+        ltd.last_flag = 1; 
+    }
 }
 
 //Verify if all threads are currently active in the system
