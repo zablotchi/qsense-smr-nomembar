@@ -38,3 +38,24 @@ void init(double_llist_t* list) {
     list->tail = NULL;
     list->size = 0;
 }
+
+mr_node_t* remove_node(double_llist_t* list, mr_node_t* node){
+    if (node->mr_prev != NULL){
+        (node->mr_prev)->mr_next = node->mr_next;
+    } else{
+        //update list head
+        list->head = node->mr_next;
+    }
+
+    if(node->mr_next != NULL){
+        (node->mr_next)->mr_prev = node->mr_prev;
+    } else{
+        //update list tail
+        list->tail = node->mr_prev;
+    }
+
+    //update list size
+    list->size --;
+
+    return node;
+}

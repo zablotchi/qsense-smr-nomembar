@@ -107,12 +107,12 @@ int update_epoch()
     return 1;
 }
 
-void mr_init_local(uint64_t thread_index, uint64_t nthreads) {
+void mr_init_local(uint8_t thread_index, uint8_t nthreads) {
     qad.thread_index = thread_index;
     qad.nthreads = nthreads;
 }
 
-void mr_init_global(uint64_t nthreads) {
+void mr_init_global(uint8_t nthreads) {
     int i, j;
     
     qg = (struct qsbr_globals *)malloc(sizeof(struct qsbr_globals));

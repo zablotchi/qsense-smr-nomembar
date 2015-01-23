@@ -34,7 +34,7 @@ __thread smr_data_t sd;
 uint8_t is_old_enough(mr_node_t* n);
 void do_nothing(){}
 
-void mr_init_global(uint64_t nthreads){
+void mr_init_global(uint8_t nthreads){
   /* Allocate HP array. Over-allocate since the parent has pid 32. */
   // HP = (hazard_pointer *)mapmem(sizeof(hazard_pointer) * K*(MAX_THREADS+1));
   HP = (hazard_pointer_t *)malloc(sizeof(hazard_pointer_t) * K*nthreads);
@@ -52,7 +52,7 @@ void mr_init_global(uint64_t nthreads){
 
 }
 
-void mr_init_local(uint64_t thread_index, uint64_t nthreads){
+void mr_init_local(uint8_t thread_index, uint8_t nthreads){
   
   sd.rlist = (double_llist_t*) malloc(sizeof(double_llist_t));
   init(sd.rlist);
@@ -165,7 +165,8 @@ void scan()
       // here cur is not NULL and is old enough
       // if cur is not protected by a HP, remove it
       if (!ssearch(plist, psize, cur->actual_node)) {
-        remove_from_tail(sd.rlist);
+        //remove_from_tail(sd.rlist);
+        remove_node(sd.rlist, cur);
         sd.rcount--;
         ((node_t *)(cur->actual_node))->key = 10000;
         ssfree_alloc(0, cur->actual_node);

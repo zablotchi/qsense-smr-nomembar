@@ -31,7 +31,7 @@
 
 __thread smr_data_t sd;
 
-void mr_init_global(uint64_t nthreads){
+void mr_init_global(uint8_t nthreads){
   /* Allocate HP array. Over-allocate since the parent has pid 32. */
   // HP = (hazard_pointer *)mapmem(sizeof(hazard_pointer) * K*(MAX_THREADS+1));
   HP = (hazard_pointer_t *)malloc(sizeof(hazard_pointer_t) * K*nthreads);
@@ -46,7 +46,7 @@ void mr_init_global(uint64_t nthreads){
     HP[i].p = NULL;
 }
 
-void mr_init_local(uint64_t thread_index, uint64_t nthreads){
+void mr_init_local(uint8_t thread_index, uint8_t nthreads){
 
   sd.rlist = (double_llist_t*) malloc(sizeof(double_llist_t));
   init(sd.rlist);
