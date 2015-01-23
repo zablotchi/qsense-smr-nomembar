@@ -24,9 +24,10 @@ inline int ssearch(void **list, size_t size, void *key);
 void reset_presence();
 int all_threads_present();
 void rotation();
+void update_lists();
 
 
-void mr_init_local(uint64_t thread_index, uint64_t nthreads) {
+void mr_init_local(uint8_t thread_index, uint8_t nthreads) {
     ltd.thread_index = thread_index;
     ltd.nthreads = nthreads;
     ltd.rcount = 0;
@@ -38,14 +39,14 @@ void mr_init_local(uint64_t thread_index, uint64_t nthreads) {
         init(ltd.limbo_list[j]);
     }
 
-    sd.vlist = (double_llist_t*) malloc(sizeof(double_llist_t));
-    init(sd.vlist);
+    ltd.vlist = (double_llist_t*) malloc(sizeof(double_llist_t));
+    init(ltd.vlist);
     HP_cur = 0;
 
 }
 
 // TODO IGOR OANA add NULL verification after memory allocation
-void mr_init_global(uint64_t nthreads) {
+void mr_init_global(uint8_t nthreads) {
     int i;
     
     nthreads_ = nthreads;

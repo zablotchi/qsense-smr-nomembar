@@ -42,11 +42,10 @@ static volatile int stop;
 typedef volatile struct node {
     skey_t key;
     sval_t val;
+    /*Field used to mark for deletion, in the vlist, for the lazy HP variant*/
+    uint64_t marked;
     volatile struct node* next;
-    uint8_t padding32[8];
-#if defined(DO_PAD)
-    uint8_t padding[CACHE_LINE_SIZE - sizeof(sval_t) - sizeof(skey_t) - sizeof(struct node*)];
-#endif
+    // no padding needed, should fit in 32 bytes
 } node_t;
 
 typedef ALIGNED(CACHE_LINE_SIZE) struct intset {

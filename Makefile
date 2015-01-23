@@ -127,7 +127,7 @@ time-qsbr:
 time-smr_no_membar:
 	$(MAKE) "STM=LOCKFREE" "GC=0" "INIT=one" "TEST=time" src/linkedlist-smr-no-membar-harris_opt
 time-hybrid:
-	$(MAKE) "GC=0" "LOCK=TICKET" "INIT=one" "TEST=time" "VERSION=DEBUG" src/linkedlist-qsbr-smr-hybrid
+	$(MAKE) "GC=0" "LOCK=TICKET" "INIT=one" "TEST=time" src/linkedlist-qsbr-smr-hybrid
 time-hybrid_lazy:
 	$(MAKE) "GC=0" "LOCK=TICKET" "INIT=one" "TEST=time" src/linkedlist-hybrid-lazy
 time-lfll_mr: time-qsbr time-smr_no_membar time-hybrid time-hybrid_lazy
