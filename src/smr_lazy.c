@@ -135,7 +135,8 @@ void scan()
     int i;
 
     /* List of SMR callbacks. */
-    mr_node_t *tmplist;
+    double_llist_t tmplist;
+    init(&tmplist);
 
     /* List of hazard pointers, and its size. */
     void **plist = sd.plist;
@@ -171,21 +172,48 @@ void scan()
     //qsort(plist, psize, sizeof(void *), compare);
 
     /* Stage 3: Free non-harzardous nodes. */
-    tmplist = sd.rlist->head;
-    sd.rlist->head = NULL;
+    sd.rcount = 0;
+
+    tmplist.head = sd.rlist->head;
+    tmplist.tail = sd.rlist->tail;
+    tmplist.size = sd.rlist->size;
+
+    init(sd.rlist);
+
     // Setting rcount to 0 here would ignore nodes from vlist
-    sd.rcount = sd.vlist->size;
-    while (tmplist != NULL) {
+    while (tmplist.size > 0) {
         /* Pop cur off top of tmplist. */
-        cur = tmplist;
-        tmplist = tmplist->mr_next;
+        cur = remove_from_tail(&tmplist);
         /*OANA here, bsearch was used, with the compar function*/
         if (!is_old_enough(cur) || ssearch(plist, psize, cur->actual_node)) {
-            cur->mr_next = sd.rlist->head;
-            sd.rlist->head = cur;
+
+            add_to_head(sd.rlist, cur);
             sd.rcount++;
         } else {
             ((node_t *)(cur->actual_node))->key = 10000;
+            ssfree_alloc(0, cur->actual_node);
+            ssfree_alloc(1, cur);
+        }
+    }
+
+    tmplist.head = sd.vlist->head;
+    tmplist.tail = sd.vlist->tail;
+    tmplist.size = sd.vlist->size;
+
+    init(sd.vlist);
+
+    while (tmplist.size > 0) {
+
+        /* Pop cur off top of tmplist. */
+        cur = remove_from_tail(&tmplist);
+        // tmplist = tmplist->mr_next;
+
+        if (ssearch(plist, psize, cur->actual_node)) {
+
+            add_to_head(sd.vlist, cur);
+            sd.rcount++;
+        } else {
+            ((node_t *)(cur->actual_node))->key = 10000;      
             ssfree_alloc(0, cur->actual_node);
             ssfree_alloc(1, cur);
         }
@@ -216,7 +244,7 @@ void free_node_later(void *n)
 
     //If vlist size > 2*#HP do one rotation
     if (sd.vlist->size > H) { // >=?
-      rotation();
+        rotation();
     } else {//vlist size < 2*#HP
       
       //keep marking and adding nodes from the end of rlist to the top of vlist, if they are old enough.
