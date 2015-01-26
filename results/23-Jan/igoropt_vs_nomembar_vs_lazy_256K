@@ -1,0 +1,24 @@
+# XEON, 256K, U0
+#       ./bin/lf-ll_smr_no_membar_harris_opt ./bin/lf-ll_smr_no_membar_igor_opt ./bin/lf-ll_smr_lazy
+
+
+# XEON, 256K, U10
+#       ./bin/lf-ll_smr_no_membar_harris_opt ./bin/lf-ll_smr_no_membar_igor_opt ./bin/lf-ll_smr_lazy
+
+
+
+# XEON, 256K, U50
+#       ./bin/lf-ll_smr_no_membar_harris_opt ./bin/lf-ll_smr_no_membar_igor_opt ./bin/lf-ll_smr_lazy
+
+
+
+# XEON, 256K, U80
+#       ./bin/lf-ll_smr_no_membar_harris_opt ./bin/lf-ll_smr_no_membar_igor_opt ./bin/lf-ll_smr_lazy
+
+
+
+# XEON, 256K, U100
+#       ./bin/lf-ll_smr_no_membar_harris_opt ./bin/lf-ll_smr_no_membar_igor_opt ./bin/lf-ll_smr_lazy
+
+
+
