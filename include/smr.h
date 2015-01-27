@@ -67,7 +67,8 @@ struct smr_data {
   uint32_t rcount;
   uint32_t nthreads;
   uint32_t thread_index;
-  char padding[CACHE_LINE_SIZE - 3*sizeof(uint32_t) - 2*sizeof(double_llist_t *) - sizeof(void **)];
+  uint8_t free_calls;
+  char padding[CACHE_LINE_SIZE - 3*sizeof(uint32_t) - 2*sizeof(double_llist_t *) - sizeof(void **) - sizeof(uint8_t)];
 };
 
 typedef ALIGNED(CACHE_LINE_SIZE) struct smr_data smr_data_t;

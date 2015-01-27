@@ -61,6 +61,7 @@ void mr_init_local(uint8_t thread_index, uint8_t nthreads){
   sd.thread_index = thread_index;
   sd.nthreads = nthreads;
   sd.plist = (void **) malloc(sizeof(void *) * K * sd.nthreads);
+  sd.free_calls = 0;
 }
 
 void mr_thread_exit()
@@ -181,8 +182,10 @@ void free_node_later(void *n)
     // sd.rlist->head = wrapper_node;
     add_to_head(sd.rlist, wrapper_node);
     sd.rcount++;
+    sd.free_calls++;
 
-    if (sd.rcount >= R) {
+    if (sd.free_calls >= R) {
+        sd.free_calls = 0;
         scan();
     }
 }
