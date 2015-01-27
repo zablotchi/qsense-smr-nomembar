@@ -111,8 +111,12 @@ qsbr:
 	$(MAKE) "LOCK=TICKET" "GC=0" "INIT=one" src/linkedlist-qsbr-harris_opt
 smr_no_membar:
 	$(MAKE) "STM=LOCKFREE" "GC=0" "INIT=one" src/linkedlist-smr-no-membar-harris_opt
-smr_no_membar_igor:
-	$(MAKE) "STM=LOCKFREE" "GC=0" "INIT=one" src/linkedlist-smr-no-membar-igor_opt/
+smr_no_membar_igor0:
+	$(MAKE) "STM=LOCKFREE" "GC=0" "IGOR_OPT_LEVEL=0" "INIT=one" src/linkedlist-smr-no-membar-igor_opt/
+smr_no_membar_igor1:
+	$(MAKE) "STM=LOCKFREE" "GC=0" "IGOR_OPT_LEVEL=1" "INIT=one" src/linkedlist-smr-no-membar-igor_opt/
+smr_no_membar_igor2:
+	$(MAKE) "STM=LOCKFREE" "GC=0" "IGOR_OPT_LEVEL=2" "INIT=one" src/linkedlist-smr-no-membar-igor_opt/
 hybrid:
 	$(MAKE) "GC=0" "LOCK=TICKET" "INIT=one" src/linkedlist-qsbr-smr-hybrid
 hybrid_lazy:

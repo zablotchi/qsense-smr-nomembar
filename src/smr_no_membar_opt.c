@@ -167,8 +167,6 @@ void scan()
       // go to the next oldest node
       cur = cur->mr_prev;
     }
-
-    printf("Freed: %llu\n", freed);
 }
 
 void free_node_later(void *n)
@@ -182,12 +180,23 @@ void free_node_later(void *n)
     // sd.rlist->head = wrapper_node;
     add_to_head(sd.rlist, wrapper_node);
     sd.rcount++;
-    sd.free_calls++;
 
+#if IGOR_OPT_LEVEL == 0
+
+    if (sd.rcount >= R) {
+      scan();
+    }
+
+#elif IGOR_OPT_LEVEL == 1
+
+    sd.free_calls++;
     if (sd.free_calls >= R) {
         sd.free_calls = 0;
         scan();
     }
+
+#endif
+
 }
 
 uint8_t is_old_enough(mr_node_t* n) {

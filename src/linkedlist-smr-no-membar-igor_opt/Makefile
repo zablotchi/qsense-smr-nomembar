@@ -2,7 +2,15 @@ ROOT = ../..
 
 include $(ROOT)/common/Makefile.common
 
-BINS = $(BINDIR)/lf-ll_smr_no_membar_igor_opt
+ifeq ($(IGOR_OPT_LEVEL),0)
+BINS = $(BINDIR)/lf-ll_smr_no_membar_igor_opt0
+endif 
+ifeq ($(IGOR_OPT_LEVEL),1)
+BINS = $(BINDIR)/lf-ll_smr_no_membar_igor_opt1
+endif 
+ifeq ($(IGOR_OPT_LEVEL),2)
+BINS = $(BINDIR)/lf-ll_smr_no_membar_igor_opt2
+endif
 PROF = $(ROOT)/src
 
 .PHONY:	all clean

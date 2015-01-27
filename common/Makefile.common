@@ -312,6 +312,15 @@ ifeq ($(LATENCY),5)
 	LDFLAGS += $(SSPFD) -lm
 endif
 
+ifeq ($(IGOR_OPT_LEVEL),0)
+    CFLAGS += -DIGOR_OPT_LEVEL=0
+endif 
+ifeq ($(IGOR_OPT_LEVEL),1)
+    CFLAGS += -DIGOR_OPT_LEVEL=1
+endif 
+ifeq ($(IGOR_OPT_LEVEL),2)
+    CFLAGS += -DIGOR_OPT_LEVEL=2
+endif
 
 ifeq ($(INIT),one)
 	CFLAGS += -DINITIALIZE_FROM_ONE=1
