@@ -118,6 +118,7 @@ void scan()
     /* Iteratation variables. */
     mr_node_t *cur;
     int i;
+    uint64_t freed = 0;
 
     /* List of SMR callbacks. */
     mr_node_t *tmplist;
@@ -126,18 +127,6 @@ void scan()
     void **plist = sd.plist;
     size_t psize;
 
-    /*
-     * Make sure that the most recent node to be deleted has been unlinked
-     * in all processors' views.
-     *
-     * Good:
-     *   A -> B -> C ---> A -> C ---> A -> C
-     *                    B -> C      B -> POISON
-     *
-     * Illegal:
-     *   A -> B -> C ---> A -> B      ---> A -> C
-     *                    B -> POISON      B -> POISON
-     */
     //write_barrier();
      MEM_BARRIER;
 
@@ -171,32 +160,14 @@ void scan()
         ((node_t *)(cur->actual_node))->key = 10000;
         ssfree_alloc(0, cur->actual_node);
         ssfree_alloc(1, cur);  
+        freed++;
       }
 
       // go to the next oldest node
       cur = cur->mr_prev;
     }
-    
 
-    /* Stage 3: Free non-harzardous nodes. */
-    // tmplist = sd.rlist->head;
-    // sd.rlist->head = NULL;
-    // sd.rcount = 0;
-    // while (tmplist != NULL) {
-    //     /* Pop cur off top of tmplist. */
-    //     cur = tmplist;
-    //     tmplist = tmplist->mr_next;
-    //     /*OANA here, bsearch was used, with the compar function*/
-    //     if (!is_old_enough(cur) || ssearch(plist, psize, cur->actual_node)) {
-    //         cur->mr_next = sd.rlist->head;
-    //         sd.rlist->head = cur;
-    //         sd.rcount++;
-    //     } else {
-    //         ((node_t *)(cur->actual_node))->key = 10000;
-    //         ssfree_alloc(0, cur->actual_node);
-    //         ssfree_alloc(1, cur);
-    //     }
-    // }
+    printf("Freed: %llu\n", freed);
 }
 
 void free_node_later(void *n)
