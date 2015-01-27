@@ -40,6 +40,7 @@
 #define K 2
 #define H (K * sd.nthreads)
 #define R (100 + 2*H)
+#define SCAN_THRESHOLD 50
 
 #define MAX_EXIT_RETRIES 100 * sd.nthreads
 

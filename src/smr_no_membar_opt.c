@@ -31,6 +31,10 @@
 
 __thread smr_data_t sd;
 
+#if IGOR_OPT_LEVEL == 2
+__thread struct timeval last_scan;
+#endif
+
 uint8_t is_old_enough(mr_node_t* n);
 void do_nothing(){}
 
@@ -62,6 +66,9 @@ void mr_init_local(uint8_t thread_index, uint8_t nthreads){
   sd.nthreads = nthreads;
   sd.plist = (void **) malloc(sizeof(void *) * K * sd.nthreads);
   sd.free_calls = 0;
+  #if IGOR_OPT_LEVEL == 2
+  gettimeofday(&(last_scan), NULL);
+  #endif
 }
 
 void mr_thread_exit()
@@ -116,10 +123,14 @@ inline int ssearch(void **list, size_t size, void *key) {
 
 void scan()
 {
+
+#if IGOR_OPT_LEVEL == 2
+  gettimeofday(&(last_scan), NULL);
+#endif
+
     /* Iteratation variables. */
     mr_node_t *cur;
     int i;
-    uint64_t freed = 0;
 
     /* List of SMR callbacks. */
     mr_node_t *tmplist;
@@ -161,7 +172,6 @@ void scan()
         ((node_t *)(cur->actual_node))->key = 10000;
         ssfree_alloc(0, cur->actual_node);
         ssfree_alloc(1, cur);  
-        freed++;
       }
 
       // go to the next oldest node
@@ -195,8 +205,15 @@ void free_node_later(void *n)
         scan();
     }
 
-#endif
+#elif IGOR_OPT_LEVEL == 2
+    uint64_t msec; 
+    msec = (wrapper_node->created.tv_sec - last_scan.tv_sec) * 1000; 
+    msec += (wrapper_node->created.tv_usec - last_scan.tv_usec) / 1000; 
+    if (msec >= SCAN_THRESHOLD) {
+      scan();
+    } 
 
+#endif
 }
 
 uint8_t is_old_enough(mr_node_t* n) {
