@@ -55,6 +55,9 @@ void mr_init_local(uint8_t thread_index, uint8_t nthreads){
   sd.rlist = (double_llist_t*) malloc(sizeof(double_llist_t));
   init(sd.rlist);
 
+  sd.vlist = (double_llist_t*) malloc(sizeof(double_llist_t));
+  init(sd.vlist);
+
   sd.rcount = 0;
   sd.thread_index = thread_index;
   sd.nthreads = nthreads;
@@ -177,30 +180,49 @@ void scan()
             ssfree_alloc(1, cur);
         }
     }
+
+    tmplist.head = sd.vlist->head;
+    tmplist.tail = sd.vlist->tail;
+    tmplist.size = sd.vlist->size;
+
+    init(sd.vlist);
+
+    while (tmplist.size > 0) {
+
+        /* Pop cur off top of tmplist. */
+        cur = remove_from_tail(&tmplist);
+        // tmplist = tmplist->mr_next;
+
+        if (ssearch(plist, psize, cur->actual_node)) {
+
+            add_to_head(sd.vlist, cur);
+            sd.rcount++;
+        } else {
+            ((node_t *)(cur->actual_node))->key = 10000;      
+            ssfree_alloc(0, cur->actual_node);
+            ssfree_alloc(1, cur);
+        }
+    }
 }
 
 void free_node_later(void *n)
 {
-    if (n != NULL){
 
-        mr_node_t* wrapper_node = ssalloc_alloc(1, sizeof(mr_node_t));
-        wrapper_node->actual_node = n;
+    mr_node_t* wrapper_node = ssalloc_alloc(1, sizeof(mr_node_t));
+    wrapper_node->actual_node = n;
 
-        if (sd.rlist->size <= H){
-          ((node_t*)(wrapper_node->actual_node))->marked = 1;
-        } else{
-          ((node_t*)(wrapper_node->actual_node))->marked = 0;
-        }
+    //Add to rlist
+    add_to_head(sd.rlist, wrapper_node);
+    sd.rcount++;
 
-        //Add to rlist
-        add_to_head(sd.rlist, wrapper_node);
-        sd.rcount++;
+    while(sd.vlist->size <= H && sd.rlist->tail != NULL) {
+        mr_node_t* to_add = remove_from_tail(sd.rlist);
+        ((node_t*) to_add->actual_node)->marked = 1;
+        add_to_head(sd.vlist, to_add);
+    }            
 
-
-    }
-
-    //If rlist size > 2*#HP do one rotation
-    if (sd.rcount >= R) { //&& sd.rlist->size > H) { // >=?
+    //If vlist size > 2*#HP do one rotation
+    if (sd.vlist->size > H) { // >=?
         rotation();
     } 
 
@@ -220,26 +242,24 @@ void rotation(){
   //increase HP current counter (mod H)
   HP_cur = (HP_cur + 1) % H;
 
-  //check if tail of rlist is marked
-  node_t* rlist_tail = (node_t*)sd.rlist->tail->actual_node;
-  if (rlist_tail->marked == 1) {  //if tail is marked
-    //unmark it
-    rlist_tail->marked = 0;
-    //remove it from rlist tail
-    //add it to rlist head
-    mr_node_t* rlist_tail_mr = remove_from_tail(sd.rlist);
-    add_to_head(sd.rlist, rlist_tail_mr);
-    
+  //check if tail of vlist is marked
+  node_t* vlist_tail = (node_t*)sd.vlist->tail->actual_node;
+  if (vlist_tail->marked) {  //if tail is marked
+      //unmark it
+      vlist_tail->marked = 0;
+      //remove it from vlist tail
+      //add it to vlist head
+      add_to_head(sd.vlist, remove_from_tail(sd.vlist));
+
   } else { //tail is unmarked
-    //free the memory
-    mr_node_t* rlist_tail_mr = remove_from_tail(sd.rlist);
-    ((node_t *)(rlist_tail_mr->actual_node))->key = 10000;
-    ssfree_alloc(0, rlist_tail_mr->actual_node);
-    ssfree_alloc(1, rlist_tail_mr);
-    
-    //decrease rcount
-    reclaimed_count++;
-    sd.rcount--;
+      //free the memory
+      mr_node_t* vlist_tail_mr = remove_from_tail(sd.vlist);
+      ((node_t *)(vlist_tail_mr->actual_node))->key = 10000;
+      ssfree_alloc(0, vlist_tail_mr->actual_node);
+      ssfree_alloc(1, vlist_tail_mr);
+
+      //decrease rcount
+      sd.rcount--;
   }
     
 }
