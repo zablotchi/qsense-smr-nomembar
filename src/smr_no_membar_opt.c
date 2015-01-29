@@ -32,7 +32,7 @@
 
 __thread smr_data_t sd;
 
-#if IGOR_OPT_LEVEL == 3
+#if IGOR_OPT_LEVEL == 3 || IGOR_OPT_LEVEL == 9001
 __thread struct bloom bloom;
 #endif
 
@@ -87,7 +87,7 @@ void mr_thread_exit()
         scan();
         sched_yield();
     }
-#if IGOR_OPT_LEVEL == 3
+#if IGOR_OPT_LEVEL == 3 || IGOR_OPT_LEVEL == 9001
     bloom_free(&bloom);
 #endif
 }
@@ -157,7 +157,7 @@ void scan()
 
 
 
-#if IGOR_OPT_LEVEL == 3
+#if IGOR_OPT_LEVEL == 3 || IGOR_OPT_LEVEL == 9001
     bloom_refresh(&bloom);
 #else 
   
@@ -194,7 +194,7 @@ void scan()
 
       // here cur is not NULL and is old enough
       // if cur is not protected by a HP, remove it
-#if IGOR_OPT_LEVEL == 3
+#if IGOR_OPT_LEVEL == 3 || IGOR_OPT_LEVEL == 9001
       if (!bloom_search(&bloom, &(cur->actual_node))) {
 #else 
       if (!ssearch(plist, psize, cur->actual_node)) {
@@ -211,7 +211,7 @@ void scan()
       cur = cur->mr_prev;
     }
 
-#if IGOR_OPT_LEVEL == 3
+#if IGOR_OPT_LEVEL == 3 || IGOR_OPT_LEVEL == 9001
     bloom_free(&bloom);
 #endif
 }
@@ -228,13 +228,13 @@ void free_node_later(void *n)
     add_to_head(sd.rlist, wrapper_node);
     sd.rcount++;
 
-#if IGOR_OPT_LEVEL == 0
+#if IGOR_OPT_LEVEL == 0 
 
     if (sd.rcount >= R) {
       scan();
     }
 
-#elif IGOR_OPT_LEVEL == 1
+#elif IGOR_OPT_LEVEL == 1 || IGOR_OPT_LEVEL == 9001
 
     sd.free_calls++;
     if (sd.free_calls >= R) {

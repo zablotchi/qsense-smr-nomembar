@@ -14,6 +14,9 @@ endif
 ifeq ($(IGOR_OPT_LEVEL),3)
 BINS = $(BINDIR)/lf-ll_smr_no_membar_igor_opt3
 endif
+ifeq ($(IGOR_OPT_LEVEL),9001)
+BINS = $(BINDIR)/lf-ll_smr_no_membar_igor_opt_all
+endif
 PROF = $(ROOT)/src
 
 .PHONY:	all clean
