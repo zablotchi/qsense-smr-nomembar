@@ -117,6 +117,8 @@ smr_no_membar_igor1:
 	$(MAKE) "STM=LOCKFREE" "GC=0" "IGOR_OPT_LEVEL=1" "INIT=one" src/linkedlist-smr-no-membar-igor_opt/
 smr_no_membar_igor2:
 	$(MAKE) "STM=LOCKFREE" "GC=0" "IGOR_OPT_LEVEL=2" "INIT=one" src/linkedlist-smr-no-membar-igor_opt/
+smr_no_membar_igor3:
+	$(MAKE) "STM=LOCKFREE" "GC=0" "IGOR_OPT_LEVEL=3" "INIT=one" src/linkedlist-smr-no-membar-igor_opt/
 hybrid:
 	$(MAKE) "GC=0" "LOCK=TICKET" "INIT=one" src/linkedlist-qsbr-smr-hybrid
 hybrid_lazy:

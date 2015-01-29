@@ -11,6 +11,9 @@ endif
 ifeq ($(IGOR_OPT_LEVEL),2)
 BINS = $(BINDIR)/lf-ll_smr_no_membar_igor_opt2
 endif
+ifeq ($(IGOR_OPT_LEVEL),3)
+BINS = $(BINDIR)/lf-ll_smr_no_membar_igor_opt3
+endif
 PROF = $(ROOT)/src
 
 .PHONY:	all clean
@@ -27,6 +30,12 @@ ssalloc.o:
 
 sleeper_threads.o:
 	$(CC) $(CFLAGS) -c -o $(BUILDIR)/sleeper_threads.o $(PROF)/sleeper_threads.c
+
+murmurhash.o:
+	$(CC) $(CFLAGS) -c -o $(BUILDIR)/MurmurHash2.o $(PROF)/MurmurHash2.c
+
+bloom.o:
+	$(CC) $(CFLAGS) -c -o $(BUILDIR)/bloom.o $(PROF)/bloom.c
 
 double_llist.o:
 	$(CC) $(CFLAGS) -c -o $(BUILDIR)/double_llist.o $(PROF)/double_llist.c	
@@ -46,8 +55,8 @@ intset.o: linkedlist.h harris.h
 test.o: linkedlist.h harris.h intset.h
 	$(CC) $(CFLAGS) -c -o $(BUILDIR)/test.o $(TEST_FILE)
 
-main: measurements.o ssalloc.o double_llist.o linkedlist.o harris.o harris.o intset.o test.o smr_no_membar_opt.o sleeper_threads.o $(TMILB)
-	$(CC) $(CFLAGS) $(BUILDIR)/measurements.o $(BUILDIR)/ssalloc.o $(BUILDIR)/double_llist.o $(BUILDIR)/linkedlist.o $(BUILDIR)/harris.o $(BUILDIR)/intset.o $(BUILDIR)/test.o $(BUILDIR)/smr_no_membar_opt.o $(BUILDIR)/sleeper_threads.o -o $(BINS) $(LDFLAGS)
+main: measurements.o ssalloc.o double_llist.o linkedlist.o harris.o harris.o intset.o test.o smr_no_membar_opt.o sleeper_threads.o murmurhash.o bloom.o $(TMILB)
+	$(CC) $(CFLAGS) $(BUILDIR)/measurements.o $(BUILDIR)/ssalloc.o $(BUILDIR)/double_llist.o $(BUILDIR)/linkedlist.o $(BUILDIR)/harris.o $(BUILDIR)/intset.o $(BUILDIR)/test.o $(BUILDIR)/smr_no_membar_opt.o $(BUILDIR)/sleeper_threads.o $(BUILDIR)/MurmurHash2.o $(BUILDIR)/bloom.o -o $(BINS) $(LDFLAGS)
 
 clean:
 	-rm -f $(BINS)

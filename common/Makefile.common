@@ -321,6 +321,9 @@ endif
 ifeq ($(IGOR_OPT_LEVEL),2)
     CFLAGS += -DIGOR_OPT_LEVEL=2
 endif
+ifeq ($(IGOR_OPT_LEVEL),3)
+    CFLAGS += -DIGOR_OPT_LEVEL=3
+endif
 
 ifeq ($(INIT),one)
 	CFLAGS += -DINITIALIZE_FROM_ONE=1

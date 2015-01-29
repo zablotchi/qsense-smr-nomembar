@@ -24,12 +24,17 @@
 #include <stdlib.h>
 #include "linkedlist-smr-no-membar-harris_opt/linkedlist.h"
 #include "sleeper_threads.h"
+#include "bloom.h"
 
 // IGOR: SSALLOC allocator convention:
 // 0 is for actual nodes
 // 1 is for m_nodes
 
 __thread smr_data_t sd;
+
+#if IGOR_OPT_LEVEL == 3
+__thread struct bloom bloom;
+#endif
 
 #if IGOR_OPT_LEVEL == 2
 __thread struct timeval last_scan;
@@ -66,9 +71,9 @@ void mr_init_local(uint8_t thread_index, uint8_t nthreads){
   sd.nthreads = nthreads;
   sd.plist = (void **) malloc(sizeof(void *) * K * sd.nthreads);
   sd.free_calls = 0;
-  #if IGOR_OPT_LEVEL == 2
+#if IGOR_OPT_LEVEL == 2
   gettimeofday(&(last_scan), NULL);
-  #endif
+#endif
 }
 
 void mr_thread_exit()
@@ -82,6 +87,9 @@ void mr_thread_exit()
         scan();
         sched_yield();
     }
+#if IGOR_OPT_LEVEL == 3
+    bloom_free(&bloom);
+#endif
 }
 
 void mr_exit_global(){
@@ -121,6 +129,25 @@ inline int ssearch(void **list, size_t size, void *key) {
     return 0;
 }
 
+// Bloom filter search
+// * Return:
+// * -------
+// *     0 - element is not present
+// *     1 - element is present (or false positive due to collision)
+int bloom_search(struct bloom * bloom, void ** node_address) {
+    return bloom_check(bloom, node_address, sizeof(void *));
+}
+
+void bloom_refresh(struct bloom * bloom) {
+    bloom_init(bloom, H, 0.01);
+    int i;
+    for (i = 0; i < H; i++) {
+      if (HP[i].p != NULL){
+        bloom_add(bloom, &(HP[i].p), sizeof(void *));
+      }
+    }
+}
+
 void scan()
 {
 
@@ -128,21 +155,21 @@ void scan()
   gettimeofday(&(last_scan), NULL);
 #endif
 
-    /* Iteratation variables. */
-    mr_node_t *cur;
-    int i;
 
-    /* List of SMR callbacks. */
-    mr_node_t *tmplist;
 
+#if IGOR_OPT_LEVEL == 3
+    bloom_refresh(&bloom);
+#else 
+  
     /* List of hazard pointers, and its size. */
     void **plist = sd.plist;
-    size_t psize;
 
     //write_barrier();
      MEM_BARRIER;
 
     /* Stage 1: Scan HP list and insert non-null values in plist. */
+    size_t psize;
+    int i;
     psize = 0;
     for (i = 0; i < H; i++) {
       if (HP[i].p != NULL){
@@ -150,6 +177,7 @@ void scan()
         psize++;
       }
     }
+#endif
 
     
     /* Stage 2: Sort the plist. */
@@ -157,6 +185,7 @@ void scan()
     //qsort(plist, psize, sizeof(void *), compare);
 
     // start iterating through rlist from the last (oldest) node
+    mr_node_t *cur;
     cur = sd.rlist->tail;
     while (true) {
       if (cur == NULL || !is_old_enough(cur)) {
@@ -165,7 +194,11 @@ void scan()
 
       // here cur is not NULL and is old enough
       // if cur is not protected by a HP, remove it
+#if IGOR_OPT_LEVEL == 3
+      if (!bloom_search(&bloom, &(cur->actual_node))) {
+#else 
       if (!ssearch(plist, psize, cur->actual_node)) {
+#endif
         //remove_from_tail(sd.rlist);
         remove_node(sd.rlist, cur);
         sd.rcount--;
@@ -177,6 +210,10 @@ void scan()
       // go to the next oldest node
       cur = cur->mr_prev;
     }
+
+#if IGOR_OPT_LEVEL == 3
+    bloom_free(&bloom);
+#endif
 }
 
 void free_node_later(void *n)
