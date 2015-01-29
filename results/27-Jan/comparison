@@ -25,26 +25,26 @@
  
 
 # u50                                                                                                                                                                     
-#       ./bin/lf-ll_smr_harris_opt        ./bin/lf-ll_smr_no_membar_harris_opt   ./bin/lf-ll_smr_no_membar_igor_opt0    ./bin/lf-ll_smr_no_membar_igor_opt1   ./bin/lf-ll_smr_no_membar_igor_opt2  ./bin/lf-ll_smr_no_membar_igor_opt3                             
-#cores  throughput     throughput         throughput       throughput        throughput   throughput           
-1       92828          91574              383527           386295            390355       440065              
-2       140556         177142             565477           565422            541024       417018              
-4       228264         348696             1109456          1106057           1022888      670229              
-8       403751         621766             1236954          1265813           1217668      939818              
-16      633508         1071164            1571622          1706234           1647497      1497656             
-20      718310         1302787            1814816          1999289           1931436      1942058             
-40      1356912        1819009            2099494          2612109           2285185      2626220             
-80      1913555        2264607            2462181          3268677           2659520      3428813  
+#       ./bin/lf-ll_smr_harris_opt        ./bin/lf-ll_smr_no_membar_harris_opt   ./bin/lf-ll_smr_no_membar_igor_opt0    ./bin/lf-ll_smr_no_membar_igor_opt1   ./bin/lf-ll_smr_no_membar_igor_opt2  ./bin/lf-ll_smr_no_membar_igor_opt3     ./bin/lf-ll_smr_no_membar_igor_opt_all                        
+#cores  throughput     throughput         throughput       throughput        throughput   throughput  throughput         
+1       92828          91574              383527           386295            390355       440065      383471            
+2       140556         177142             565477           565422            541024       417018      569709            
+4       228264         348696             1109456          1106057           1022888      670229      1113385           
+8       403751         621766             1236954          1265813           1217668      939818      1270549           
+16      633508         1071164            1571622          1706234           1647497      1497656     1659411           
+20      718310         1302787            1814816          1999289           1931436      1942058     1963984           
+40      1356912        1819009            2099494          2612109           2285185      2626220     2615210           
+80      1913555        2264607            2462181          3268677           2659520      3428813     3334824    
    
                                                                                                                                                                  
 # u100                                                                                                                                                           
-#       ./bin/lf-ll_smr_harris_opt   ./bin/lf-ll_smr_no_membar_harris_opt    ./bin/lf-ll_smr_no_membar_igor_opt0   ./bin/lf-ll_smr_no_membar_igor_opt1   ./bin/lf-ll_smr_no_membar_igor_opt2  ./bin/lf-ll_smr_no_membar_igor_opt3                                     
-#cores  throughput    throughput          throughput        throughput           throughput   throughput                                
-1       94273         48729               379545            380717               385711       432570                                    
-2       139941        95871               548421            549009               522325       406789                                    
-4       227696        189808              1050092           1065749              957968       647564                                    
-8       389309        355473              1139023           1179574              1137584      902049                                    
-16      626332        646396              1270423           1372268              1367379      1387197                                   
-20      678596        801098              1410063           1570454              1564546      1842450                                   
-40      1165738       1243446             1674113           2555373              1885056      2570024                                   
-80      1560774       1308730             1960862           2978245              2256617      2965054            
+#       ./bin/lf-ll_smr_harris_opt   ./bin/lf-ll_smr_no_membar_harris_opt    ./bin/lf-ll_smr_no_membar_igor_opt0   ./bin/lf-ll_smr_no_membar_igor_opt1   ./bin/lf-ll_smr_no_membar_igor_opt2  ./bin/lf-ll_smr_no_membar_igor_opt3   ./bin/lf-ll_smr_no_membar_igor_opt_all                                  
+#cores  throughput    throughput          throughput        throughput           throughput   throughput  throughput                              
+1       94273         48729               379545            380717               385711       432570      378609                                  
+2       139941        95871               548421            549009               522325       406789      550920                                  
+4       227696        189808              1050092           1065749              957968       647564      1064364                                 
+8       389309        355473              1139023           1179574              1137584      902049      1174951                                 
+16      626332        646396              1270423           1372268              1367379      1387197     1359781                                 
+20      678596        801098              1410063           1570454              1564546      1842450     1556274                                 
+40      1165738       1243446             1674113           2555373              1885056      2570024     2562555                                 
+80      1560774       1308730             1960862           2978245              2256617      2965054     3069602            

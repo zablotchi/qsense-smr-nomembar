@@ -32,7 +32,8 @@ plot    infile i 2 using 1:2 title "original" with linespoint ls 2, \
         infile i 2 using 1:4 title "nmb + ordered rlist" with linespoint ls 4, \
         infile i 2 using 1:5 title "nmb + ordered rlist + periodic_op" with linespoint ls 5, \
         infile i 2 using 1:6 title "nmb + ordered rlist + periodic_time" with linespoint ls 7, \
-        infile i 2 using 1:7 title "nmb + ordered rlist + bloom" with linespoint ls 8
+        infile i 2 using 1:7 title "nmb + ordered rlist + bloom" with linespoint ls 8,\
+
 
 set title "Updates = 100%"                                
 
@@ -41,6 +42,6 @@ plot    infile i 3 using 1:2 title "original" with linespoint ls 2, \
         infile i 3 using 1:4 title "nmb + ordered rlist" with linespoint ls 4, \
         infile i 3 using 1:5 title "nmb + ordered rlist + periodic_op" with linespoint ls 5, \
         infile i 3 using 1:6 title "nmb + ordered rlist + periodic_time" with linespoint ls 7, \
-        infile i 3 using 1:7 title "nmb + ordered rlist + bloom" with linespoint ls 8
+        infile i 3 using 1:7 title "nmb + ordered rlist + bloom" with linespoint ls 8,\
 
 unset output
