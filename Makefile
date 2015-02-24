@@ -155,7 +155,7 @@ lfll_smr_harris:
 	$(MAKE) "GC=0" "STM=LOCKFREE" src/linkedlist-smr
 
 lfll_harris_opt:
-	$(MAKE) "STM=LOCKFREE" src/linkedlist-harris_opt
+	$(MAKE) "STM=LOCKFREE" "INIT=one" src/linkedlist-harris_opt
 
 malloc_compare: lfll_harris_opt lfll_harris_opt_tcmalloc lfll_harris_opt_jemalloc
 
