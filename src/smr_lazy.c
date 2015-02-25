@@ -190,7 +190,7 @@ void scan()
             add_to_head(sd.rlist, cur);
             sd.rcount++;
         } else {
-            ((node_t *)(cur->actual_node))->key = 10000;
+            ((node_t *)(cur->actual_node))->key = 600000;
             ssfree_alloc(0, cur->actual_node);
             ssfree_alloc(1, cur);
         }
@@ -213,7 +213,7 @@ void scan()
             add_to_head(sd.vlist, cur);
             sd.rcount++;
         } else {
-            ((node_t *)(cur->actual_node))->key = 10000;      
+            ((node_t *)(cur->actual_node))->key = 600000;      
             ssfree_alloc(0, cur->actual_node);
             ssfree_alloc(1, cur);
         }
@@ -282,7 +282,7 @@ void rotation(){
   } else { //tail is unmarked
     //free the memory
     mr_node_t* vlist_tail_mr = remove_from_tail(sd.vlist);
-    ((node_t *)(vlist_tail_mr->actual_node))->key = 10000;
+    ((node_t *)(vlist_tail_mr->actual_node))->key = 600000;
     ssfree_alloc(0, vlist_tail_mr->actual_node);
     ssfree_alloc(1, vlist_tail_mr);
     

@@ -74,7 +74,7 @@ try_again_search:
         }
         offset = 1-offset;
 
-        if (right_node->key == 10000) {
+        if (right_node->key == 600000) {
             fprintf(stderr, "Touched illegal node in search\n");
         }
         
@@ -115,7 +115,7 @@ try_again_search:
         }
         offset = 1-offset;
 
-        if (right_node->key == 10000) {
+        if (right_node->key == 600000) {
             fprintf(stderr, "Touched illegal node in find\n");
         }
         

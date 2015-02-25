@@ -202,7 +202,7 @@ void scan()
         //remove_from_tail(sd.rlist);
         remove_node(sd.rlist, cur);
         sd.rcount--;
-        ((node_t *)(cur->actual_node))->key = 10000;
+        ((node_t *)(cur->actual_node))->key = 600000;
         ssfree_alloc(0, cur->actual_node);
         ssfree_alloc(1, cur);  
       }

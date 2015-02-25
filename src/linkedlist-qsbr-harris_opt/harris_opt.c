@@ -60,7 +60,7 @@ list_search(intset_t* set, skey_t key, node_t** left_node_ptr) {
     node_t* left_node = set->head;
     node_t* right_node = set->head->next;
     while (1) {
-        if (right_node->key == 10000) {
+        if (right_node->key == 600000) {
             printf("touched illegal node in search\n");
         }
         if (likely(!is_marked_ref(right_node->next))) {
@@ -85,14 +85,14 @@ sval_t harris_find(intset_t* the_list, skey_t key) {
  
     node_t* node = the_list->head->next;
     PARSE_TRY();
-    if (node->key == 10000) {
+    if (node->key == 600000) {
             printf("touched illegal node in find\n");
     }
 
     while (likely(node->key < key)) {
         node = get_unmarked_ref(node->next);
         
-        if (node->key == 10000) {
+        if (node->key == 600000) {
             printf("touched illegal node in find\n");
         }
     }

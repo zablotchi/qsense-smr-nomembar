@@ -109,7 +109,7 @@ int find (node_t **head, long key)
             long ckey = cur->key;
             if (*prev != cur) goto try_again;
  
-            if (cur->key == 10000) {
+            if (cur->key == 600000) {
                 fprintf(stderr, "touched illegal node FUUUUUUUUUUUUUUUU\n");
             }
 
@@ -225,7 +225,7 @@ int search (struct list *l, long key)
             long ckey = cur->key;
             if (*prev != cur) goto try_again;
 
-            if (cur->key == 10000) {
+            if (cur->key == 600000) {
                 fprintf(stderr, "touched illegal node FUUUUUUUUUUUUUUUU\n");
             }
 

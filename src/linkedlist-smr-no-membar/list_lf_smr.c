@@ -119,8 +119,8 @@ int find (node_t **head, long key)
             
             if (*prev != cur) goto try_again;
             
-            if (cur->key >= 10000) {
-                fprintf(stderr, "touched illegal node in find. Deleter: [%d]; Me: [%d]\n", cur->key - 10000, sd.thread_index);
+            if (cur->key >= 600000) {
+                fprintf(stderr, "touched illegal node in find. Deleter: [%d]; Me: [%d]\n", cur->key - 600000, sd.thread_index);
             }
             
             if (cur->key >= key) {
@@ -239,8 +239,8 @@ int search (struct list *l, long key)
             long ckey = cur->key;
             if (*prev != cur) goto try_again;
 
-            if (cur->key >= 10000) {
-                fprintf(stderr, "touched illegal node in search. Deleter: [%d]; Me: [%d]\n", cur->key - 10000, sd.thread_index);
+            if (cur->key >= 600000) {
+                fprintf(stderr, "touched illegal node in search. Deleter: [%d]; Me: [%d]\n", cur->key - 600000, sd.thread_index);
             }
 
             if (ckey >= key) {

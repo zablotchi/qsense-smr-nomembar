@@ -84,7 +84,7 @@ harris_search(intset_t *set, skey_t key, node_t **left_node) {
         do {
 
             //OANA IGOR
-            if (t->key == 10000) {
+            if (t->key == 600000) {
                 fprintf(stderr, "touched illegal node FUUUUUUUUUUUUUUUU\n");
             }
             
