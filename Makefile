@@ -130,7 +130,7 @@ smr_lazy:
 
 smr_membar_lazy:
 	$(MAKE) "GC=0" "STM=LOCKFREE" "INIT=one" src/linkedlist-smr-membar-lazy		
-lfll_mr: smr qsbr smr_no_membar smr_no_membar_igor hybrid smr_lazy smr_membar_lazy
+lfll_mr: smr qsbr smr_no_membar hybrid hybrid_lazy lfll_harris_opt
 
 	
 time-qsbr:
