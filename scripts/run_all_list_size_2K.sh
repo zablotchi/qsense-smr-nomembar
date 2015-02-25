@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bi./scripts/sh
 echo "###################### HYBRID 2K, u0, u10, u50, u100"
 ./scripts/scalability_rep.sh "1 2 4 8 16 32 48" 5 median ./bin/lf-ll_hybrid_harris_opt -d3000 -u0 -i1024 -r2048
 ./scripts/scalability_rep.sh "1 2 4 8 16 32 48" 5 median ./bin/lf-ll_hybrid_harris_opt -d3000 -u10 -i1024 -r2048
