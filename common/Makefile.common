@@ -324,8 +324,17 @@ endif
 ifeq ($(IGOR_OPT_LEVEL),3)
     CFLAGS += -DIGOR_OPT_LEVEL=3
 endif
-ifeq ($(IGOR_OPT_LEVEL),9001)
-    CFLAGS += -DIGOR_OPT_LEVEL=9001
+ifeq ($(IGOR_OPT_LEVEL),4)
+    CFLAGS += -DIGOR_OPT_LEVEL=4
+endif 
+ifeq ($(IGOR_OPT_LEVEL),5)
+    CFLAGS += -DIGOR_OPT_LEVEL=5
+endif 
+ifeq ($(IGOR_OPT_LEVEL),6)
+    CFLAGS += -DIGOR_OPT_LEVEL=6
+endif
+ifeq ($(IGOR_OPT_LEVEL),7)
+    CFLAGS += -DIGOR_OPT_LEVEL=7
 endif
 
 ifeq ($(INIT),one)

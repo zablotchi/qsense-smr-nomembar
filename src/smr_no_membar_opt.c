@@ -32,12 +32,8 @@
 
 __thread smr_data_t sd;
 
-#if IGOR_OPT_LEVEL == 3 || IGOR_OPT_LEVEL == 9001
+#if (IGOR_OPT_LEVEL & 1)
 __thread struct bloom bloom;
-#endif
-
-#if IGOR_OPT_LEVEL == 2
-__thread struct timeval last_scan;
 #endif
 
 uint8_t is_old_enough(mr_node_t* n);
@@ -71,9 +67,6 @@ void mr_init_local(uint8_t thread_index, uint8_t nthreads){
   sd.nthreads = nthreads;
   sd.plist = (void **) malloc(sizeof(void *) * K * sd.nthreads);
   sd.free_calls = 0;
-#if IGOR_OPT_LEVEL == 2
-  gettimeofday(&(last_scan), NULL);
-#endif
 }
 
 void mr_thread_exit()
@@ -87,7 +80,7 @@ void mr_thread_exit()
         scan();
         sched_yield();
     }
-#if IGOR_OPT_LEVEL == 3 || IGOR_OPT_LEVEL == 9001
+#if (IGOR_OPT_LEVEL & 1)
     bloom_free(&bloom);
 #endif
 }
@@ -151,13 +144,7 @@ void bloom_refresh(struct bloom * bloom) {
 void scan()
 {
 
-#if IGOR_OPT_LEVEL == 2
-  gettimeofday(&(last_scan), NULL);
-#endif
-
-
-
-#if IGOR_OPT_LEVEL == 3 || IGOR_OPT_LEVEL == 9001
+#if (IGOR_OPT_LEVEL & 1)
     bloom_refresh(&bloom);
 #else 
   
@@ -178,7 +165,6 @@ void scan()
       }
     }
 #endif
-
     
     /* Stage 2: Sort the plist. */
     /* OANA For now, just do linear search*/
@@ -188,30 +174,46 @@ void scan()
     mr_node_t *cur;
     cur = sd.rlist->tail;
     while (true) {
-      if (cur == NULL || !is_old_enough(cur)) {
-        break;
-      } 
-
-      // here cur is not NULL and is old enough
-      // if cur is not protected by a HP, remove it
-#if IGOR_OPT_LEVEL == 3 || IGOR_OPT_LEVEL == 9001
-      if (!bloom_search(&bloom, &(cur->actual_node))) {
-#else 
-      if (!ssearch(plist, psize, cur->actual_node)) {
+#if (IGOR_OPT_LEVEL & 4)
+#pragma message("sorting")
+        if (cur == NULL || !is_old_enough(cur)) {
+          break;
+        } 
+#else
+#pragma message("no sorting")
+        if (cur == NULL) {
+          break;
+        } 
 #endif
-        //remove_from_tail(sd.rlist);
-        remove_node(sd.rlist, cur);
-        sd.rcount--;
-        ((node_t *)(cur->actual_node))->key = 600000;
-        ssfree_alloc(0, cur->actual_node);
-        ssfree_alloc(1, cur);  
-      }
 
-      // go to the next oldest node
-      cur = cur->mr_prev;
+
+#if !(IGOR_OPT_LEVEL & 4)
+#pragma message("no sorting")
+        if (is_old_enough(cur)) { 
+#endif
+#if (IGOR_OPT_LEVEL & 1) 
+#pragma message("bloom")
+          if (!bloom_search(&bloom, &(cur->actual_node))){ 
+#else 
+#pragma message("no bloom")
+          if (!ssearch(plist, psize, cur->actual_node)){
+#endif
+  
+            //remove_from_tail(sd.rlist);
+            remove_node(sd.rlist, cur);
+            sd.rcount--;
+            ((node_t *)(cur->actual_node))->key = 600000;
+            ssfree_alloc(0, cur->actual_node);
+            ssfree_alloc(1, cur);  
+          }
+#if !(IGOR_OPT_LEVEL & 4)
+        }
+#endif
+        // go to the next oldest node
+        cur = cur->mr_prev;
     }
 
-#if IGOR_OPT_LEVEL == 3 || IGOR_OPT_LEVEL == 9001
+#if (IGOR_OPT_LEVEL & 1)
     bloom_free(&bloom);
 #endif
 }
@@ -228,27 +230,19 @@ void free_node_later(void *n)
     add_to_head(sd.rlist, wrapper_node);
     sd.rcount++;
 
-#if IGOR_OPT_LEVEL == 0 
-
-    if (sd.rcount >= R) {
-      scan();
-    }
-
-#elif IGOR_OPT_LEVEL == 1 || IGOR_OPT_LEVEL == 9001
-
+#if (IGOR_OPT_LEVEL & 2)
+#pragma message("per_op")
     sd.free_calls++;
     if (sd.free_calls >= R) {
         sd.free_calls = 0;
         scan();
     }
 
-#elif IGOR_OPT_LEVEL == 2
-    uint64_t msec; 
-    msec = (wrapper_node->created.tv_sec - last_scan.tv_sec) * 1000; 
-    msec += (wrapper_node->created.tv_usec - last_scan.tv_usec) / 1000; 
-    if (msec >= SCAN_THRESHOLD) {
+#else  
+#pragma message("no per_op")
+    if (sd.rcount >= R) {
       scan();
-    } 
+    }
 
 #endif
 }
