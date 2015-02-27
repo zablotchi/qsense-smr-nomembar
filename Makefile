@@ -111,6 +111,11 @@ qsbr:
 	$(MAKE) "LOCK=TICKET" "GC=0" "INIT=one" src/linkedlist-qsbr-harris_opt
 smr_no_membar:
 	$(MAKE) "STM=LOCKFREE" "GC=0" "INIT=one" src/linkedlist-smr-no-membar-harris_opt
+
+# Optimizations are enabled using IGOR_OPT_LEVEL which
+# is coded on a 3-bit integer: lowest bit enables bloom, 
+# second bit enables periodic_op scan, highest bit enables
+# only looking at old enough nodes	
 smr_no_membar_igor0:
 	$(MAKE) "STM=LOCKFREE" "GC=0" "IGOR_OPT_LEVEL=0" "INIT=one" src/linkedlist-smr-no-membar-igor_opt/
 smr_no_membar_igor1:
@@ -119,8 +124,16 @@ smr_no_membar_igor2:
 	$(MAKE) "STM=LOCKFREE" "GC=0" "IGOR_OPT_LEVEL=2" "INIT=one" src/linkedlist-smr-no-membar-igor_opt/
 smr_no_membar_igor3:
 	$(MAKE) "STM=LOCKFREE" "GC=0" "IGOR_OPT_LEVEL=3" "INIT=one" src/linkedlist-smr-no-membar-igor_opt/
-smr_no_membar_igor_all:
-	$(MAKE) "STM=LOCKFREE" "GC=0" "IGOR_OPT_LEVEL=9001" "INIT=one" src/linkedlist-smr-no-membar-igor_opt/
+smr_no_membar_igor4:
+	$(MAKE) "STM=LOCKFREE" "GC=0" "IGOR_OPT_LEVEL=4" "INIT=one" src/linkedlist-smr-no-membar-igor_opt/
+smr_no_membar_igor5:
+	$(MAKE) "STM=LOCKFREE" "GC=0" "IGOR_OPT_LEVEL=5" "INIT=one" src/linkedlist-smr-no-membar-igor_opt/
+smr_no_membar_igor6:
+	$(MAKE) "STM=LOCKFREE" "GC=0" "IGOR_OPT_LEVEL=6" "INIT=one" src/linkedlist-smr-no-membar-igor_opt/
+smr_no_membar_igor7:
+	$(MAKE) "STM=LOCKFREE" "GC=0" "IGOR_OPT_LEVEL=7" "INIT=one" src/linkedlist-smr-no-membar-igor_opt/
+
+opt: smr_no_membar_igor0 smr_no_membar_igor1 smr_no_membar_igor2 smr_no_membar_igor3 smr_no_membar_igor4 smr_no_membar_igor5 smr_no_membar_igor6 smr_no_membar_igor7
 hybrid:
 	$(MAKE) "GC=0" "LOCK=TICKET" "INIT=one" src/linkedlist-qsbr-smr-hybrid
 hybrid_lazy:
@@ -130,7 +143,7 @@ smr_lazy:
 
 smr_membar_lazy:
 	$(MAKE) "GC=0" "STM=LOCKFREE" "INIT=one" src/linkedlist-smr-membar-lazy		
-lfll_mr: smr qsbr smr_no_membar smr_no_membar_igor hybrid smr_lazy smr_membar_lazy
+lfll_mr: smr qsbr smr_no_membar hybrid hybrid_lazy lfll_harris_opt
 
 	
 time-qsbr:

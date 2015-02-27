@@ -2,6 +2,10 @@ ROOT = ../..
 
 include $(ROOT)/common/Makefile.common
 
+# Optimizations are enabled using IGOR_OPT_LEVEL which
+# is coded on a 3-bit integer: lowest bit enables bloom, 
+# second bit enables periodic_op scan, highest bit enables
+# only looking at old enough nodes
 ifeq ($(IGOR_OPT_LEVEL),0)
 BINS = $(BINDIR)/lf-ll_smr_no_membar_igor_opt0
 endif 
@@ -14,9 +18,19 @@ endif
 ifeq ($(IGOR_OPT_LEVEL),3)
 BINS = $(BINDIR)/lf-ll_smr_no_membar_igor_opt3
 endif
-ifeq ($(IGOR_OPT_LEVEL),9001)
-BINS = $(BINDIR)/lf-ll_smr_no_membar_igor_opt_all
+ifeq ($(IGOR_OPT_LEVEL),4)
+BINS = $(BINDIR)/lf-ll_smr_no_membar_igor_opt4
+endif 
+ifeq ($(IGOR_OPT_LEVEL),5)
+BINS = $(BINDIR)/lf-ll_smr_no_membar_igor_opt5
+endif 
+ifeq ($(IGOR_OPT_LEVEL),6)
+BINS = $(BINDIR)/lf-ll_smr_no_membar_igor_opt6
 endif
+ifeq ($(IGOR_OPT_LEVEL),7)
+BINS = $(BINDIR)/lf-ll_smr_no_membar_igor_opt7
+endif
+
 PROF = $(ROOT)/src
 
 .PHONY:	all clean
