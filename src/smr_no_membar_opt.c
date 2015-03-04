@@ -34,6 +34,7 @@ __thread smr_data_t sd;
 __thread uint64_t nodes_scanned;
 __thread uint64_t scans;
 __thread uint64_t nodes_freed;
+__thread uint64_t time_scanning;
 
 #if (IGOR_OPT_LEVEL & 1)
 __thread struct bloom bloom;
@@ -61,13 +62,14 @@ void mr_init_global(uint8_t nthreads){
 }
 
 void mr_init_local(uint8_t thread_index, uint8_t nthreads){
-  
+
   sd.rlist = (double_llist_t*) malloc(sizeof(double_llist_t));
   init(sd.rlist);
 
   nodes_scanned = 0;
   scans = 0;
   nodes_freed = 0;
+  time_scanning = 0;
 
   sd.rcount = 0;
   sd.thread_index = thread_index;
@@ -79,10 +81,10 @@ void mr_init_local(uint8_t thread_index, uint8_t nthreads){
 void mr_thread_exit()
 {
     int i;
-    
+
     for (i = 0; i < K; i++)
         HP[K * sd.thread_index + i].p = NULL;
-    
+
     while (sd.rcount > 0) {
         scan();
         sched_yield();
@@ -101,10 +103,10 @@ void mr_reinitialize()
 {
 }
 
-/* 
+/*
  * Comparison function for qsort.
  *
- * We just need any total order, so we'll use the arithmetic order 
+ * We just need any total order, so we'll use the arithmetic order
  * of pointers on the machine.
  *
  * Output (see "man qsort"):
@@ -120,12 +122,24 @@ int compare (const void *a, const void *b)
 
 /* Debugging function. Leave it around. */
 inline int ssearch(void **list, size_t size, void *key) {
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
     int i;
     for (i = 0; i < size; i++) {
       if (list[i] == key) {
-        return 1;
+          gettimeofday(&end, NULL);
+          uint64_t usec;
+          usec = (end.tv_sec - start.tv_sec) * 1000000;
+          usec += (end.tv_usec - start.tv_usec);
+          time_scanning += usec;
+          return 1;
       }
     }
+    gettimeofday(&end, NULL);
+    uint64_t usec;
+    usec = (end.tv_sec - start.tv_sec) * 1000000;
+    usec += (end.tv_usec - start.tv_usec);
+    time_scanning += usec;
     return 0;
 }
 
@@ -135,10 +149,20 @@ inline int ssearch(void **list, size_t size, void *key) {
 // *     0 - element is not present
 // *     1 - element is present (or false positive due to collision)
 int bloom_search(struct bloom * bloom, void ** node_address) {
-    return bloom_check(bloom, node_address, sizeof(void *));
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
+    int res = bloom_check(bloom, node_address, sizeof(void *));
+    gettimeofday(&end, NULL);
+    uint64_t usec;
+    usec = (end.tv_sec - start.tv_sec) * 1000000;
+    usec += (end.tv_usec - start.tv_usec);
+    time_scanning += usec;
+    return res;
 }
 
 void bloom_refresh(struct bloom * bloom) {
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
     bloom_init(bloom, H, 0.01);
     int i;
     for (i = 0; i < H; i++) {
@@ -146,6 +170,11 @@ void bloom_refresh(struct bloom * bloom) {
         bloom_add(bloom, &(HP[i].p), sizeof(void *));
       }
     }
+    gettimeofday(&end, NULL);
+    uint64_t usec;
+    usec = (end.tv_sec - start.tv_sec) * 1000000;
+    usec += (end.tv_usec - start.tv_usec);
+    time_scanning += usec;
 }
 
 void scan()
@@ -154,8 +183,8 @@ void scan()
   scans++;
 #if (IGOR_OPT_LEVEL & 1)
     bloom_refresh(&bloom);
-#else 
-  
+#else
+
     /* List of hazard pointers, and its size. */
     void **plist = sd.plist;
 
@@ -173,7 +202,7 @@ void scan()
       }
     }
 #endif
-    
+
     /* Stage 2: Sort the plist. */
     /* OANA For now, just do linear search*/
     //qsort(plist, psize, sizeof(void *), compare);
@@ -186,34 +215,34 @@ void scan()
 #pragma message("sorting")
         if (cur == NULL || !is_old_enough(cur)) {
           break;
-        } 
+        }
 #else
 #pragma message("no sorting")
         if (cur == NULL) {
           break;
-        } 
+        }
 #endif
 
         nodes_scanned++;
 #if !(IGOR_OPT_LEVEL & 4)
 #pragma message("no sorting")
-        if (is_old_enough(cur)) { 
+        if (is_old_enough(cur)) {
 #endif
-#if (IGOR_OPT_LEVEL & 1) 
+#if (IGOR_OPT_LEVEL & 1)
 #pragma message("bloom")
-          if (!bloom_search(&bloom, &(cur->actual_node))){ 
-#else 
+          if (!bloom_search(&bloom, &(cur->actual_node))){
+#else
 #pragma message("no bloom")
           if (!ssearch(plist, psize, cur->actual_node)){
 #endif
-  
+
             //remove_from_tail(sd.rlist);
             nodes_freed++;
             remove_node(sd.rlist, cur);
             sd.rcount--;
             ((node_t *)(cur->actual_node))->key = 600000;
             ssfree_alloc(0, cur->actual_node);
-            ssfree_alloc(1, cur);  
+            ssfree_alloc(1, cur);
           }
 #if !(IGOR_OPT_LEVEL & 4)
         }
@@ -247,7 +276,7 @@ void free_node_later(void *n)
         scan();
     }
 
-#else  
+#else
 #pragma message("no per_op")
     if (sd.rcount >= R) {
       scan();
@@ -259,8 +288,8 @@ void free_node_later(void *n)
 uint8_t is_old_enough(mr_node_t* n) {
     struct timeval now;
     gettimeofday(&now, NULL);
-    uint64_t msec; 
-    msec = (now.tv_sec - n->created.tv_sec) * 1000; 
-    msec += (now.tv_usec - n->created.tv_usec) / 1000; 
-    return (msec >= (SLEEP_AMOUNT + MARGIN)); 
+    uint64_t msec;
+    msec = (now.tv_sec - n->created.tv_sec) * 1000;
+    msec += (now.tv_usec - n->created.tv_usec) / 1000;
+    return (msec >= (SLEEP_AMOUNT + MARGIN));
 }
