@@ -539,8 +539,8 @@ int main(int argc, char **argv) {
             + removing_count_total) * 1000.0 / duration;
     printf("#txs %zu\t(%-10.0f\n", num_threads, throughput);
     printf("#Mops %.3f\n", throughput / 1e6);
-    printf("Nodes scanned per scan: %f\n",nodes_per_scan);
-    printf("Nodes freed per scan: %f\n",nodes_freed_per_scan);
+    printf("Nodes scanned per scan: %.2f\n",nodes_per_scan);
+    printf("Nodes freed per scan: %.2f\n",nodes_freed_per_scan);
     printf("Total time spent searching: %llu\n", (LLU) total_time_scanning);
 
     RR_PRINT_UNPROTECTED(RAPL_PRINT_POW);RR_PRINT_CORRECTED();RETRY_STATS_PRINT(total, putting_count_total, removing_count_total, putting_count_total_succ + removing_count_total_succ);
