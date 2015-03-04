@@ -31,6 +31,9 @@
 // 1 is for m_nodes
 
 __thread smr_data_t sd;
+__thread uint64_t nodes_scanned;
+__thread uint64_t scans;
+__thread uint64_t nodes_freed;
 
 #if (IGOR_OPT_LEVEL & 1)
 __thread struct bloom bloom;
@@ -61,6 +64,10 @@ void mr_init_local(uint8_t thread_index, uint8_t nthreads){
   
   sd.rlist = (double_llist_t*) malloc(sizeof(double_llist_t));
   init(sd.rlist);
+
+  nodes_scanned = 0;
+  scans = 0;
+  nodes_freed = 0;
 
   sd.rcount = 0;
   sd.thread_index = thread_index;
@@ -144,6 +151,7 @@ void bloom_refresh(struct bloom * bloom) {
 void scan()
 {
 
+  scans++;
 #if (IGOR_OPT_LEVEL & 1)
     bloom_refresh(&bloom);
 #else 
@@ -186,7 +194,7 @@ void scan()
         } 
 #endif
 
-
+        nodes_scanned++;
 #if !(IGOR_OPT_LEVEL & 4)
 #pragma message("no sorting")
         if (is_old_enough(cur)) { 
@@ -200,6 +208,7 @@ void scan()
 #endif
   
             //remove_from_tail(sd.rlist);
+            nodes_freed++;
             remove_node(sd.rlist, cur);
             sd.rcount--;
             ((node_t *)(cur->actual_node))->key = 600000;
