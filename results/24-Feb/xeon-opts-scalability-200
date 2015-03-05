@@ -1,0 +1,410 @@
+###################### SMR 200, u0, u10, u50, u100
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_harris_opt
+#cores  throughput  %linear scalability
+1       712622      100.00  1
+2       1468104     103.01  2.06
+4       2913454     102.21  4.09
+8       5636354     98.87   7.91
+16      9014290     79.06   12.65
+20      10850546    76.13   15.23
+40      15944074    55.93   22.37
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_harris_opt
+#cores  throughput  %linear scalability
+1       728219      100.00  1
+2       1421747     97.62   1.95
+4       2618037     89.88   3.60
+8       3580391     61.46   4.92
+16      3904292     33.51   5.36
+20      4805390     32.99   6.60
+40      8824401     30.29   12.12
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_harris_opt
+#cores  throughput  %linear scalability
+1       730607      100.00  1
+2       1372154     93.91   1.88
+4       2542232     86.99   3.48
+8       3007389     51.45   4.12
+16      3149925     26.95   4.31
+20      3624066     24.80   4.96
+40      5033481     17.22   6.89
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_harris_opt
+#cores  throughput  %linear scalability
+1       735348      100.00  1
+2       1321947     89.89   1.80
+4       2395522     81.44   3.26
+8       3058239     51.99   4.16
+16      2705305     22.99   3.68
+20      2837480     19.29   3.86
+40      3480910     11.83   4.73
+###################### SMR no MEMBAR 200, u0, u10, u50, u100
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_harris_opt
+#cores  throughput  %linear scalability
+1       5484479     100.00  1
+2       10964689    99.96   2.00
+4       20462081    93.27   3.73
+8       43135319    98.31   7.86
+16      77517491    88.34   14.13
+20      95973158    87.50   17.50
+40      154131184   70.26   28.10
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_harris_opt
+#cores  throughput  %linear scalability
+1       474449      100.00  1
+2       945582      99.65   1.99
+4       1886596     99.41   3.98
+8       3454388     91.01   7.28
+16      6152578     81.05   12.97
+20      7405281     78.04   15.61
+40      10903229    57.45   22.98
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_harris_opt
+#cores  throughput  %linear scalability
+1       98578       100.00  1
+2       196414      99.62   1.99
+4       393026      99.67   3.99
+8       772033      97.90   7.83
+16      1494787     94.77   15.16
+20      1850882     93.88   18.78
+40      3092413     78.43   31.37
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_harris_opt
+#cores  throughput  %linear scalability
+1       49563       100.00  1
+2       98916       99.79   2.00
+4       197539      99.64   3.99
+8       391594      98.76   7.90
+16      767827      96.82   15.49
+20      954645      96.31   19.26
+40      1619543     81.69   32.68
+###################### OPT 0 200, u0, u10, u50, u100
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt0
+#cores  throughput  %linear scalability
+1       5345189     100.00  1
+2       10863991    101.62  2.03
+4       20166107    94.32   3.77
+8       41144083    96.22   7.70
+16      78375667    91.64   14.66
+20      96727626    90.48   18.10
+40      150454332   70.37   28.15
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt0
+#cores  throughput  %linear scalability
+1       477596      100.00  1
+2       950009      99.46   1.99
+4       1894801     99.18   3.97
+8       3460797     90.58   7.25
+16      6144479     80.41   12.87
+20      7471664     78.22   15.64
+40      10913433    57.13   22.85
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt0
+#cores  throughput  %linear scalability
+1       99216       100.00  1
+2       197592      99.58   1.99
+4       394848      99.49   3.98
+8       775822      97.74   7.82
+16      1501969     94.61   15.14
+20      1862491     93.86   18.77
+40      3128142     78.82   31.53
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt0
+#cores  throughput  %linear scalability
+1       49877       100.00  1
+2       99306       99.55   1.99
+4       198483      99.49   3.98
+8       393834      98.70   7.90
+16      771551      96.68   15.47
+20      959262      96.16   19.23
+40      1644392     82.42   32.97
+###################### OPT 1 200, u0, u10, u50, u100
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt1
+#cores  throughput  %linear scalability
+1       5495713     100.00  1
+2       10530195    95.80   1.92
+4       21026876    95.65   3.83
+8       43070696    97.96   7.84
+16      78689342    89.49   14.32
+20      94758276    86.21   17.24
+40      153677095   69.91   27.96
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt1
+#cores  throughput  %linear scalability
+1       477214      100.00  1
+2       947678      99.29   1.99
+4       1883925     98.69   3.95
+8       3435418     89.99   7.20
+16      6030046     78.97   12.64
+20      7284968     76.33   15.27
+40      10457089    54.78   21.91
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt1
+#cores  throughput  %linear scalability
+1       98956       100.00  1
+2       197238      99.66   1.99
+4       392458      99.15   3.97
+8       767597      96.96   7.76
+16      1474098     93.10   14.90
+20      1813836     91.65   18.33
+40      2932674     74.09   29.64
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt1
+#cores  throughput  %linear scalability
+1       49716       100.00  1
+2       98989       99.55   1.99
+4       197390      99.26   3.97
+8       389100      97.83   7.83
+16      757131      95.18   15.23
+20      935276      94.06   18.81
+40      1530393     76.96   30.78
+###################### OPT 2 200, u0, u10, u50, u100
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt2
+#cores  throughput  %linear scalability
+1       5611050     100.00  1
+2       11049884    98.47   1.97
+4       22008771    98.06   3.92
+8       42537890    94.76   7.58
+16      73756076    82.15   13.14
+20      94380349    84.10   16.82
+40      159365302   71.01   28.40
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt2
+#cores  throughput  %linear scalability
+1       3189250     100.00  1
+2       6312835     98.97   1.98
+4       12248981    96.02   3.84
+8       11295074    44.27   3.54
+16      11886609    23.29   3.73
+20      12780689    20.04   4.01
+40      19005585    14.90   5.96
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt2
+#cores  throughput  %linear scalability
+1       915787      100.00  1
+2       1856557     101.36  2.03
+4       3787547     103.40  4.14
+8       5980489     81.63   6.53
+16      5523137     37.69   6.03
+20      5889805     32.16   6.43
+40      16015092    43.72   17.49
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt2
+#cores  throughput  %linear scalability
+1       481022      100.00  1
+2       977159      101.57  2.03
+4       2009355     104.43  4.18
+8       3635427     94.47   7.56
+16      3504549     45.54   7.29
+20      3727219     38.74   7.75
+40      12969326    67.41   26.96
+###################### OPT 3 200, u0, u10, u50, u100
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt3
+#cores  throughput  %linear scalability
+1       5526526     100.00  1
+2       10770688    97.45   1.95
+4       21598857    97.71   3.91
+8       41868171    94.70   7.58
+16      74189596    83.90   13.42
+20      97022871    87.78   17.56
+40      157630233   71.31   28.52
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt3
+#cores  throughput  %linear scalability
+1       3182591     100.00  1
+2       6289188     98.81   1.98
+4       12302673    96.64   3.87
+8       11360057    44.62   3.57
+16      11660526    22.90   3.66
+20      13028075    20.47   4.09
+40      19138205    15.03   6.01
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt3
+#cores  throughput  %linear scalability
+1       912454      100.00  1
+2       1849794     101.36  2.03
+4       3768550     103.25  4.13
+8       5939891     81.37   6.51
+16      5467726     37.45   5.99
+20      5850352     32.06   6.41
+40      15989655    43.81   17.52
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt3
+#cores  throughput  %linear scalability
+1       479137      100.00  1
+2       972484      101.48  2.03
+4       2001274     104.42  4.18
+8       3614794     94.30   7.54
+16      3471401     45.28   7.25
+20      3671700     38.32   7.66
+40      13059666    68.14   27.26
+###################### OPT 4 200, u0, u10, u50, u100
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt4
+#cores  throughput  %linear scalability
+1       5587132     100.00  1
+2       11056512    98.95   1.98
+4       21125418    94.53   3.78
+8       42234475    94.49   7.56
+16      77625499    86.84   13.89
+20      95402191    85.38   17.08
+40      164473469   73.59   29.44
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt4
+#cores  throughput  %linear scalability
+1       5228567     100.00  1
+2       9619172     91.99   1.84
+4       16622542    79.48   3.18
+8       10796978    25.81   2.06
+16      10573861    12.64   2.02
+20      11363324    10.87   2.17
+40      13475068    6.44    2.58
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt4
+#cores  throughput  %linear scalability
+1       4527817     100.00  1
+2       7026310     77.59   1.55
+4       10209487    56.37   2.25
+8       7708631     21.28   1.70
+16      4983915     6.88    1.10
+20      5136910     5.67    1.13
+40      5926153     3.27    1.31
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt4
+#cores  throughput  %linear scalability
+1       3975934     100.00  1
+2       5500458     69.17   1.38
+4       6957695     43.75   1.75
+8       5911449     18.59   1.49
+16      3197400     5.03    0.80
+20      3234879     4.07    0.81
+40      3691723     2.32    0.93
+###################### OPT 5 200, u0, u10, u50, u100
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt5
+#cores  throughput  %linear scalability
+1       5350261     100.00  1
+2       11002346    102.82  2.06
+4       21359928    99.81   3.99
+8       40932563    95.63   7.65
+16      78429338    91.62   14.66
+20      95181078    88.95   17.79
+40      157259349   73.48   29.39
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt5
+#cores  throughput  %linear scalability
+1       5003490     100.00  1
+2       8931396     89.25   1.79
+4       14364350    71.77   2.87
+8       10225375    25.55   2.04
+16      10252193    12.81   2.05
+20      10974763    10.97   2.19
+40      12843916    6.42    2.57
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt5
+#cores  throughput  %linear scalability
+1       3777912     100.00  1
+2       5616035     74.33   1.49
+4       8060077     53.34   2.13
+8       6511236     21.54   1.72
+16      4567345     7.56    1.21
+20      4818815     6.38    1.28
+40      5456533     3.61    1.44
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt5
+#cores  throughput  %linear scalability
+1       2959629     100.00  1
+2       4015961     67.85   1.36
+4       5297344     44.75   1.79
+8       4718707     19.93   1.59
+16      2891502     6.11    0.98
+20      3008305     5.08    1.02
+40      3316963     2.80    1.12
+###################### OPT 6 200, u0, u10, u50, u100
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt6
+#cores  throughput  %linear scalability
+1       5425028     100.00  1
+2       11123871    102.52  2.05
+4       21234602    97.85   3.91
+8       41398928    95.39   7.63
+16      77885288    89.73   14.36
+20      94879276    87.45   17.49
+40      161713184   74.52   29.81
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt6
+#cores  throughput  %linear scalability
+1       5277000     100.00  1
+2       9797369     92.83   1.86
+4       17155213    81.27   3.25
+8       11808948    27.97   2.24
+16      11382683    13.48   2.16
+20      12652477    11.99   2.40
+40      19109990    9.05    3.62
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt6
+#cores  throughput  %linear scalability
+1       4708142     100.00  1
+2       7526451     79.93   1.60
+4       10521072    55.87   2.23
+8       8960991     23.79   1.90
+16      5708544     7.58    1.21
+20      5981685     6.35    1.27
+40      16094722    8.55    3.42
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt6
+#cores  throughput  %linear scalability
+1       4256880     100.00  1
+2       6015202     70.65   1.41
+4       7916072     46.49   1.86
+8       7013801     20.60   1.65
+16      3633671     5.33    0.85
+20      3824344     4.49    0.90
+40      13056271    7.67    3.07
+###################### OPT 7 200, u0, u10, u50, u100
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt7
+#cores  throughput  %linear scalability
+1       5537272     100.00  1
+2       10539482    95.17   1.90
+4       21019523    94.90   3.80
+8       42078745    94.99   7.60
+16      75284590    84.97   13.60
+20      98762205    89.18   17.84
+40      163692630   73.90   29.56
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt7
+#cores  throughput  %linear scalability
+1       5246925     100.00  1
+2       9741310     92.83   1.86
+4       16879875    80.43   3.22
+8       11800023    28.11   2.25
+16      11500533    13.70   2.19
+20      12615422    12.02   2.40
+40      19334980    9.21    3.69
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt7
+#cores  throughput  %linear scalability
+1       4560724     100.00  1
+2       7375559     80.86   1.62
+4       10433776    57.19   2.29
+8       8910016     24.42   1.95
+16      5637513     7.73    1.24
+20      5934374     6.51    1.30
+40      16016167    8.78    3.51
+# Result from 5 repetitions: median
+#       ./bin/lf-ll_smr_no_membar_igor_opt7
+#cores  throughput  %linear scalability
+1       4021859     100.00  1
+2       5982251     74.37   1.49
+4       7745915     48.15   1.93
+8       6953090     21.61   1.73
+16      3587874     5.58    0.89
+20      3773029     4.69    0.94
+40      12981722    8.07    3.23

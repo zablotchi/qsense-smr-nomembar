@@ -184,7 +184,8 @@ void scan()
 #if (IGOR_OPT_LEVEL & 1)
     bloom_refresh(&bloom);
 #else
-
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
     /* List of hazard pointers, and its size. */
     void **plist = sd.plist;
 
@@ -201,6 +202,11 @@ void scan()
         psize++;
       }
     }
+    gettimeofday(&end, NULL);
+    uint64_t usec;
+    usec = (end.tv_sec - start.tv_sec) * 1000000;
+    usec += (end.tv_usec - start.tv_usec);
+    time_scanning += usec;
 #endif
 
     /* Stage 2: Sort the plist. */

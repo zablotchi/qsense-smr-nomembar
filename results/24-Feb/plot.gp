@@ -6,7 +6,7 @@ set ytics nomirror
 set border 3 linewidth 4
 set format y "%.1t*10^{%T}"
 
-set style line 1 lt 1 lc 1  pt 4   lw 7 
+set style line 1 lt 1 lc 1  pt 4   lw 7
 set style line 2 lt 2 lc 2  pt 6   lw 7
 set style line 3 lt 3 lc 3  pt 8   lw 7
 set style line 4 lt 4 lc 4  pt 10  lw 7
@@ -17,7 +17,7 @@ set style line 8 lt 8 lc 9  pt 2   lw 7
 set style line 9 lt 9 lc 10 pt 3   lw 7
 
 set xlabel "Threads"
-set ylabel "Throughput (ops/s)" 
+set ylabel "Throughput (ops/s)"
 
 ## PRINT KEY FOR FIRST SET OF PLOTS ##
 
@@ -159,3 +159,32 @@ unset output
 
 }
 }
+
+## OPTIMIZATION RESULTS
+set style data histogram
+set style histogram clustered
+set style fill pattern
+set termoption solid
+set logscale y
+set format y
+set border linewidth 1
+set key default
+set key top center horizontal
+
+set xlabel "Update percent"
+infile="./opts-effects"
+
+set ylabel "Nodes freed per scan call"
+set output "./plots_igor/opts-effects/nodes_freed.eps"
+plot for [COL=2:9] infile i 0 using COL:xtic(1) title col
+unset output
+
+set ylabel "Nodes scanned per scan call"
+set output "./plots_igor/opts-effects/nodes_scanned.eps"
+plot for [COL=2:9] infile i 1 using COL:xtic(1) title col
+unset output
+
+set ylabel "Time spent searching"
+set output "./plots_igor/opts-effects/nodes_scanned.eps"
+plot for [COL=2:9] infile i 1 using COL:xtic(1) title col
+unset output
