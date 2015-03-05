@@ -1,9 +1,8 @@
-set term postscript eps enhanced "ACaslonPro-Regular,24"
-set termoption dash
+set term postscript eps dash enhanced "ACaslonPro-Regular,12"
 set grid
 set xtics nomirror
 set ytics nomirror
-set border 3 linewidth 4
+set border 3 linewidth 2
 set format y "%.1t*10^{%T}"
 
 set style line 1 lt 1 lc 1  pt 4   lw 7
@@ -23,10 +22,10 @@ set ylabel "Throughput (ops/s)"
 
 set output "./plots_igor/scalability/key.eps"
 set key below right
-set termoption font "Times,18"
+set termoption font "Times,12"
 plot 0 with linespoint ls 1 title "smr",\
      0 with linespoint ls 2 title "smr-nomembar"
-set termoption font "ACaslonPro-Regular,24"
+set term postscript eps dash enhanced size 5.533 cm, 3.8731 cm "ACaslonPro-Regular,12" 
 unset key
 unset output
 
@@ -56,7 +55,7 @@ block = block + 1
 
 set output "./plots_igor/scalability-opts/key.eps"
 set key below right
-set termoption font "Times,18"
+set termoption font "Times,12"
 plot \
 0 with linespoint ls 1  title "smr",\
 0 with linespoint ls 2  title "smr-no-membar",\
@@ -68,13 +67,14 @@ plot \
 0 with linespoint ls 8  title "opts-r+p",\
 0 with linespoint ls 9  title "opts-r+p+b"
 
-set termoption font "ACaslonPro-Regular,18"
+set termoption font "ACaslonPro-Regular,12"
+set term postscript eps dash enhanced "ACaslonPro-Regular,12" size 5.533 cm, 3.8731 cm
 unset key
 unset output
 
 ## SECOND SET OF PLOTS ##
 
-do for [size in "200 2K"] {
+do for [size in "200 2K 20K"] {
 do for [machine in "opteron"] {
 block=0
 do for [u in "0 10 50 100"] {
@@ -161,6 +161,7 @@ unset output
 }
 
 ## OPTIMIZATION RESULTS
+set term postscript eps dash enhanced "ACaslonPro-Regular" 12 size 9.5 cm, 6.65 cm
 set style data histogram
 set style histogram clustered
 set style fill pattern
