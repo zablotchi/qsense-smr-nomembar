@@ -165,11 +165,10 @@ set style data histogram
 set style histogram clustered
 set style fill pattern
 set termoption solid
-set logscale y
 set format y
 set border linewidth 1
-set key default
-set key top center horizontal
+set key above
+set logscale y
 
 set xlabel "Update percent"
 infile="./opts-effects"
@@ -178,13 +177,15 @@ set ylabel "Nodes freed per scan call"
 set output "./plots_igor/opts-effects/nodes_freed.eps"
 plot for [COL=2:9] infile i 0 using COL:xtic(1) title col
 unset output
+unset logscale
+
 
 set ylabel "Nodes scanned per scan call"
 set output "./plots_igor/opts-effects/nodes_scanned.eps"
 plot for [COL=2:9] infile i 1 using COL:xtic(1) title col
 unset output
 
-set ylabel "Time spent searching"
-set output "./plots_igor/opts-effects/nodes_scanned.eps"
-plot for [COL=2:9] infile i 1 using COL:xtic(1) title col
+set ylabel "Time spent searching (us)"
+set output "./plots_igor/opts-effects/time_spent.eps"
+plot for [COL=2:9] infile i 2 using COL:xtic(1) title col
 unset output
