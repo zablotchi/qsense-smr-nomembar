@@ -25,7 +25,7 @@ set key below right
 set termoption font "Times,12"
 plot 0 with linespoint ls 1 title "smr",\
      0 with linespoint ls 2 title "smr-nomembar"
-set term postscript eps dash enhanced size 5.533 cm, 3.8731 cm "ACaslonPro-Regular,12" 
+set term postscript eps dash enhanced size 5.533 cm, 3.8731 cm "ACaslonPro-Regular,12"
 unset key
 unset output
 
@@ -161,14 +161,14 @@ unset output
 }
 
 ## OPTIMIZATION RESULTS
-set term postscript eps dash enhanced "ACaslonPro-Regular" 12 size 9.5 cm, 6.65 cm
+set term postscript eps dash enhanced "ACaslonPro-Regular" 24 size 13 cm, 8 cm
 set style data histogram
 set style histogram clustered
 set style fill pattern
 set termoption solid
 set format y
 set border linewidth 1
-set key above
+set key above title "Optimizations" font "ACaslonPro-Regular,24"
 set logscale y
 
 set xlabel "Update percent"
