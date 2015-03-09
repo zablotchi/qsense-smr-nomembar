@@ -1,20 +1,20 @@
 ## XEON -n20
 # NODES FREED PER SCAN
 ## 0 ## 1 ## 2 ## 3 ## 4 ## 5 ## 6 ## 7
-update no-opts opts-b opt-p opt-b+p opt-r opt-r+b opt-r+p opt-r+p+b
+update none b p b+p r r+b r+p r+p+b
 10% 0.84 0.84 141.47 141.07 0.83 0.84 141.03 141.34
 50% 0.83 0.83 144.40 144.40 0.82 0.82 144.74 144.64
 
 
 # NODES SCANNED PER SCAN
 ## 0 ## 1 ## 2 ## 3 ## 4 ## 5 ## 6 ## 7
-update no-opts opts-b opt-p opt-b+p opt-r opt-r+b opt-r+p opt-r+p+b
+update none b p b+p r r+b r+p r+p+b
 10% 618.80 608.32 764.55 773.98 0.83 0.85 141.03 142.89
 50% 1465.85 1435.21 2379.85 2330.48 0.82 0.83 144.74 146.30
 
 
 # TIME SPENT
 ## 0 ## 1 ## 2 ## 3 ## 4 ## 5 ## 6 ## 7
-update no-opts opts-b opt-p opt-b+p opt-r opt-r+b opt-r+p opt-r+p+b
+update none b p b+p r r+b r+p r+p+b
 10% 146840 418944 13288 14697 156835 456083 13591 15956
 50% 272886 987221 53853 60183 636549 1757578 53398 60361
