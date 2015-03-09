@@ -21,8 +21,8 @@ set ylabel "Throughput (ops/s)"
 ## PRINT KEY FOR FIRST SET OF PLOTS ##
 
 set output "./plots_igor/scalability/key.eps"
-set key below right
-set termoption font "Times,12"
+set key below center horizontal
+set term postscript eps dash enhanced size 13 cm, 10 cm "ACaslonPro-Regular,24" 
 plot 0 with linespoint ls 1 title "smr",\
      0 with linespoint ls 2 title "smr-nomembar"
 set term postscript eps dash enhanced size 5.533 cm, 3.8731 cm "ACaslonPro-Regular,12" 
@@ -55,19 +55,18 @@ block = block + 1
 
 set output "./plots_igor/scalability-opts/key.eps"
 set key below right
-set termoption font "Times,12"
+set term postscript eps dash enhanced size 16 cm, 17 cm "ACaslonPro-Regular,24" 
 plot \
 0 with linespoint ls 1  title "smr",\
-0 with linespoint ls 2  title "smr-no-membar",\
+0 with linespoint ls 2  title "smr-nomembar",\
 0 with linespoint ls 3  title "opts-b",\
 0 with linespoint ls 4  title "opts-p",\
-0 with linespoint ls 5  title "opts-p+b",\
 0 with linespoint ls 6  title "opts-r",\
 0 with linespoint ls 7  title "opts-r+b",\
-0 with linespoint ls 8  title "opts-r+p",\
-0 with linespoint ls 9  title "opts-r+p+b"
+0 with linespoint ls 8  title "opts-r+p"
+#0 with linespoint ls 5  title "opts-p+b",\
+#0 with linespoint ls 9  title "opts-r+p+b"
 
-set termoption font "ACaslonPro-Regular,12"
 set term postscript eps dash enhanced "ACaslonPro-Regular,12" size 5.533 cm, 3.8731 cm
 unset key
 unset output
@@ -75,7 +74,7 @@ unset output
 ## SECOND SET OF PLOTS ##
 
 do for [size in "200 2K 20K"] {
-do for [machine in "opteron"] {
+do for [machine in "xeon opteron"] {
 block=0
 do for [u in "0 10 50 100"] {
 
@@ -88,11 +87,11 @@ infile i block using 1:2  with linespoint ls 1  title "smr",\
 infile i block using 1:3  with linespoint ls 2  title "smr-no-membar",\
 infile i block using 1:5  with linespoint ls 3  title "opts-b",\
 infile i block using 1:6  with linespoint ls 4  title "opts-p",\
-infile i block using 1:7  with linespoint ls 5  title "opts-p+b",\
 infile i block using 1:8  with linespoint ls 6  title "opts-r",\
 infile i block using 1:9  with linespoint ls 7  title "opts-r+b",\
-infile i block using 1:10 with linespoint ls 8  title "opts-r+p",\
-infile i block using 1:11 with linespoint ls 9  title "opts-r+p+b"
+infile i block using 1:10 with linespoint ls 8  title "opts-r+p"
+# infile i block using 1:7  with linespoint ls 5  title "opts-p+b",\
+# infile i block using 1:11 with linespoint ls 9  title "opts-r+p+b"
 
 unset output
 
@@ -161,7 +160,8 @@ unset output
 }
 
 ## OPTIMIZATION RESULTS
-set term postscript eps dash enhanced "ACaslonPro-Regular" 12 size 9.5 cm, 6.65 cm
+
+set term postscript eps dash enhanced color "ACaslonPro-Regular" 12 size 9.5 cm, 6.65 cm
 set style data histogram
 set style histogram clustered
 set style fill pattern
@@ -176,7 +176,7 @@ infile="./opts-effects"
 
 set ylabel "Nodes freed per scan call"
 set output "./plots_igor/opts-effects/nodes_freed.eps"
-plot for [COL=2:9] infile i 0 using COL:xtic(1) title col
+plot for [COL=2:9] infile i 0 using COL:xtic(1) title col lc COL
 unset output
 unset logscale
 
